@@ -82,7 +82,7 @@ rule<bool> contra(to(var("a"), lit(false)), tnot(var("a")));
 int main()
 {
     // (!(x \/ x) /\ !true) -> false
-    //term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
+    term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 
     variable<bool> v("x");
 
@@ -99,10 +99,12 @@ int main()
 
     cout << "function is :" << f << "\n";
 
+  //  cout <<
+
 
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
-   //cout << *example << endl;
+   cout << *example << endl;
 
     //test iterating
     //this should print every term (Not Necessarily in this order)

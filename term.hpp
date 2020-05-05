@@ -112,7 +112,7 @@ public:
     void print(ostream &out) const
     {
         cout << _n << " : ";
-        /*
+       
         for (int i = 0; i < _t.size(); i++)
         {
             term_ptr<bool> t = _t[i];
@@ -120,16 +120,17 @@ public:
             t->print(out);
         }
 
-        cout << endl;*/
+        cout << endl; /**/
     }
 
     friend ostream &operator<<(ostream &out, const function<T> &lit);
 };
-/*
 ostream & operator << (ostream &out, const term<bool>& c)
 {
-    cout <<"term " ;//<< endl;
-} */
+    //cout <<"term " ;//<< endl;
+        c.print(out);
+
+} 
 
 ostream &operator<<(ostream &out, const literal<bool> &c)
 {
@@ -192,6 +193,7 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 template <typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Sub<T> &sigma)
 {
+    
 }
 
 /////////////////////////////////////////////////////////////////
