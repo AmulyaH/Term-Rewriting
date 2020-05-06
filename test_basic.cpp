@@ -84,27 +84,9 @@ int main()
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 
-    variable<bool> v("x");
-
-   vector<term_ptr<bool>> vv ;
-   vv.emplace_back(var("x"));////v);//, var("y")};
-   vv.emplace_back(lit(true));
-    function<bool>  f("and" , 1, vv);
-
-    cout << "variable is :" << v << "\n ";
-
-    literal<bool> b(true);
-
-    cout << "literal is :" << b << "\n ";
-
-    cout << "function is :" << f << "\n";
-
-  //  cout <<
-
-
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
-   cout << *example << endl;
+    cout << *example << endl;
 
     //test iterating
     //this should print every term (Not Necessarily in this order)
