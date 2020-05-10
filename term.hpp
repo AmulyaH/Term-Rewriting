@@ -113,8 +113,8 @@ public:
 
     inline bool operator==(const term<T> &rhs) override
     {
-        return (rhs._one == nullptr) &&
-               (rhs._two == nullptr);
+        return ((rhs._one == nullptr) &&
+               (rhs._two == nullptr));
         //this->_value == rhs._value;
         //return cmp(lhs,rhs) == 0;
         //return true;
@@ -156,11 +156,11 @@ public:
     }
     inline bool operator==(const term<T> &rhs) override
     {
-        return this->_value == rhs._value && 
-        ((this->_one == nullptr && rhs._one == nullptr) || 
-        *(this->_one) == *(rhs._one) && *(rhs._one) == *(this->_one)) &&
-        ((this->_two == nullptr && rhs._two == nullptr) || 
-        *(this->_two) == *(rhs._two)&&  *(rhs._two) == *(this->_two));
+        return this->_value == rhs._value &&
+               ((this->_one == nullptr && rhs._one == nullptr) ||
+                *(this->_one) == *(rhs._one) && *(rhs._one) == *(this->_one)) &&
+               ((this->_two == nullptr && rhs._two == nullptr) ||
+                *(this->_two) == *(rhs._two) && *(rhs._two) == *(this->_two));
     }
 };
 
@@ -240,11 +240,31 @@ public:
     }
     inline bool operator==(const term<T> &rhs) override
     {
-        this->_value == rhs._value &&
-            ((this->_one == nullptr && rhs._one == nullptr) ||
-             *(this->_one) == *(rhs._one)&&  *(rhs._one) == *(this->_one)) &&
-            ((this->_two == nullptr && rhs._two == nullptr) ||
-             *(this->_two) == *(rhs._two)&&  *(rhs._two) == *(this->_two));
+        bool equal = ((this->_value == rhs._value));
+
+        if(equal)
+        equal= ((this->_one == nullptr && rhs._one == nullptr) ||
+                        *(this->_one) == *(rhs._one) ); 
+                        //&& *(rhs._one) == *(this->_one));
+
+        if(equal)
+        equal = ((this->_two == nullptr && rhs._two == nullptr) ||
+                         *(this->_two) == *(rhs._two) );
+                         //&& *(rhs._two) == *(this->_two));
+
+        //bool equal = root && leftLeg && rightLeg;
+        if (!equal)
+        {
+            if (this->_value == "not")
+            {
+                equal = (rhs._one == nullptr && rhs._two == nullptr && this->_one->_value == rhs._value);
+            }
+            else if (rhs._value == "not")
+            {
+                equal = (this->_one == nullptr && this->_two == nullptr && rhs._one->_value == this->_value);
+            }
+        }
+        return equal;
     }
 };
 
@@ -299,16 +319,16 @@ bool unify(const term<T> &t1, const term<T> &t2, Sub<T> &sigma)
 }
 
 template <typename T>
-void findMatch(Sub<bool>& match,  term_ptr<T> lhs,  term_ptr<T> rhs)
+void findMatch(Sub<bool> &match, term_ptr<T> lhs, term_ptr<T> rhs)
 {
 
-    if(lhs == nullptr)
+    if (lhs == nullptr)
     {
         return;
     }
-    if(lhs->_value != rhs->_value)
+    if (lhs->_value != rhs->_value)
     {
-        match.extend(lhs->_value,  rhs);
+        match.extend(lhs->_value, rhs);
         return;
     }
     // if(lhs->_one !=  nullptr )
@@ -317,22 +337,22 @@ void findMatch(Sub<bool>& match,  term_ptr<T> lhs,  term_ptr<T> rhs)
     findMatch(match, lhs->_two, rhs->_two);
 }
 template <typename T>
-bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<bool>& sigma)
+bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<bool> &sigma)
 {
     bool found = false;
     auto end = t->end();
     for (auto it = t->begin(); it != end; it++)
     {
-        // cout <<"checking " << **it <<" with "<< *t1 <<"\n";
+        cout << "checking for" << *t << " of " << **it << " with " << *t1 << "\n";
         if (*(*it) == *t1)
         {
-            cout <<"found " << *t1 <<"\n";
+            cout << "found " << *t1 << "\n";
             *(*it) == *t1;
             found = true;
             path = it->_path;
 
-            findMatch(sigma,it->_one, t1->_one );
-            findMatch(sigma,it->_two, t1->_two );
+            findMatch(sigma, it->_one, t1->_one);
+            findMatch(sigma, it->_two, t1->_two);
 
             break;
         }
@@ -374,25 +394,45 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
     }
 */
     //for (const auto &r : rules)
-    for (uint32_t r = 0; r < rules.size(); r++)
+    while (true)
     {
-
-        //term_ptr<T> f = (r.first);
-        //cout <<*f <<" => " << *(r.second)<<"\n";
-         Sub<bool> sigma;
-        bool found = match(t, rules[r].first, path,sigma);
-        if (found)
+        bool foundInThisRun = false;
+        for (uint32_t r = 0; r < rules.size(); r++)
         {
-            cout << " found at " << r << " -- ";
-            for (auto p : path)
-            {
-                cout << p << " ";
-            }
-            cout << " | " << endl;
 
-             //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
-    
-            t = rewrite(t, *rules[r].second, path, sigma);
+            //term_ptr<T> f = (r.first);
+            //cout <<*f <<" => " << *(r.second)<<"\n";
+            Sub<bool> sigma;
+            bool found = match(t, rules[r].first, path, sigma);
+            if (found)
+            {
+                foundInThisRun = true;
+                cout << " found at " << r << " -- ";
+                for (auto p : path)
+                {
+                    cout << p << " ";
+                }
+                cout << " | " << endl;
+
+                //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
+                cout << "rewrite " << *t << endl;
+                cout << "rhs  " << *rules[r].second << endl;
+                t = rewrite(t, rules[r].second, path, sigma);
+                cout << "to " << *t << endl;
+                cout << endl;
+            }
+        }
+        if (!foundInThisRun)
+        {
+            if(
+            t->_value == "->" && 
+            (t->_one !=nullptr && t->_two !=nullptr) &&
+            *t->_one == *t->_two ) 
+            
+            {
+                t = t->_one;
+            }
+            break;
         }
     }
 
@@ -407,11 +447,52 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T>& sigma)
+term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const Sub<T> &sigma)
 {
 
-    
     sigma.print();
+
+    term_ptr<T> currTerm = t;
+    for (uint16_t i = 0; i < path.size() - 1; i++)
+    {
+        uint16_t p = path[i];
+        if (p == 1)
+        {
+            currTerm = currTerm->_one;
+        }
+        else if (p == 2)
+        {
+            currTerm = currTerm->_two;
+        }
+    }
+    cout << "repalcing " << *currTerm << " with rhs " << *rhs << endl;
+    if (path.back() == 1)
+    {
+        currTerm->_one = rhs;
+        /*
+        if (sigma.contains(*rhs))
+        {
+            currTerm->_one = sigma(*rhs);
+        }
+        else
+        {
+            currTerm->_one = rhs;
+        }*/
+    }
+    else if (path.back() == 2)
+    {
+        currTerm->_two = rhs;
+        /*
+        if (sigma.contains(*rhs))
+        {
+            currTerm->_two = sigma(*rhs);
+        }
+        else
+        {
+            currTerm->_two = rhs;
+        }*/
+    }
+
     /*
     cout << " input " << *t << endl;
     cout << " rhs " << *rhs<<"\n";
