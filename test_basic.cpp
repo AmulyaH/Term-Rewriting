@@ -84,10 +84,24 @@ int main()
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 
+    term_ptr<bool> ex = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
+/*
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
     cout << *example << endl;
 
+    termTree<bool> tree(ex);
+    //term_iterator<bool> it = (tree.begin());
+    //term_ptr<bool>  t = *it;
+
+    //cout << *(*it) << endl;
+    //cout << *(*(it++)) << endl;
+    auto end = tree.end();
+    for( auto it = tree.begin(); it != end;it++)
+    {
+         cout << *(*it) << endl;
+    }
+   */
     //test iterating
     //this should print every term (Not Necessarily in this order)
     // output: ->(and(not(or(x,x)), not(true)), false)
@@ -106,11 +120,28 @@ int main()
         cout << t << endl;
     }*/
 
+   // cout << *example->begin() << endl;
+    //,cout << *(example->begin()++) << endl;
+
     // test doing a simple rewrite
     // this should give
+    
+    // input: ->(and(not(or(x,x)), not(true)), false)
+    // ->(a, false)
+    // !(a)
+
     // output: not(and(not(or(a,a)), not(true)))
-   // Sub<bool> match;
-   // match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
-   // example = rewrite(example, *contra.second, vector<int>(), match);
-   // cout << *example << endl;
-}
+   
+    Sub<bool> sigma;
+    //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
+
+     term_ptr<bool> t1 = tnot(tor(var("b"), tand(lit(true),lit(true))));
+     term_ptr<bool> t2 =  tand(lit(true),lit(true));
+     //sigma.extend("a && a", );
+    unify(t1,t2, sigma);
+
+    Sub<bool> match;
+    match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
+    example = rewrite(example, contra.second, vector<int>(), match);
+    cout << *example << endl;
+ }
