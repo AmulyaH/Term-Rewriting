@@ -118,7 +118,7 @@ int main()
         rule<bool>(tor(lit(true), var("a")),   lit(true))
     };
 
-    while(example)
+    //while(example)
     {
         cout << "=> " << *example << endl;
         example = reduce(example, rules);

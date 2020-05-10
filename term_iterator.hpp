@@ -109,7 +109,9 @@ public:
     if (term == nullptr) 
         return; 
   
-    curPath.push_back(step);
+    if(step !=0) {
+        curPath.push_back(step);
+    }
     term->_path = curPath;
     _terms.push(term);
 

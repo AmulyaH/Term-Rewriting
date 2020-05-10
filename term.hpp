@@ -56,46 +56,44 @@ class term
 {
 
 public:
-string _value;
-vector<int> _path;
-term_ptr<T> _one = nullptr;
+    string _value;
+    vector<int> _path;
+    term_ptr<T> _one = nullptr;
     term_ptr<T> _two = nullptr;
     term_ptr<T> _three = nullptr;
 
-    term<T> (){}
-    term<T> (const term_ptr<T>& t)
-    {
-        this->_value = t->_value;
-        this->_path = t->_path;
-        this->_one = t->_one;
-        this->_two = t->_two;
-        this->_three = t->_three;
-    }
-    term<T> &operator=(term<T> const &t)
-    {
-         this->_value = t->_value;
-        this->_path = t->_path;
-        this->_one = t->_one;
-        this->_two = t->_two;
-        this->_three = t->_three;
-    }
-    
-    typedef T                       value_type;
-    typedef T*                      pointer;
-    typedef T&                      reference;
-    typedef size_t                  size_type;
-    typedef ptrdiff_t               difference_type;
-    typedef term_iterator<T>        iterator;
-    typedef forward_iterator_tag    iterator_category; 
+    term<T>() {}
+
+    typedef T value_type;
+    typedef T *pointer;
+    typedef T &reference;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef term_iterator<T> iterator;
+    typedef forward_iterator_tag iterator_category;
 
     template <typename U>
     friend ostream &operator<<(ostream &out, const term<U> &t);
     virtual void print(ostream &out) const = 0;
 
+    term_iterator<T> begin() { return term_iterator<T>(this, true); }
+    term_iterator<T> end() { return term_iterator<T>(this, false); }
 
+    virtual inline bool operator==(const term<T> &rhs)
+    {
 
-    term_iterator<T> begin() {return term_iterator<T>(this, true);}
-    term_iterator<T> end() {return term_iterator<T>(this, false);}
+        return false;
+    }
+
+    /*
+    inline bool operator==(const term<T> &rhs) 
+    {
+        this->_value == rhs._value  && 
+        (this->_one == rhs._one) &&
+        (this->_two == rhs._two);
+        //return cmp(lhs,rhs) == 0;
+        //return true;
+    }*/
 };
 
 template <typename T>
@@ -105,11 +103,22 @@ protected:
     //string _value;
 
 public:
-    variable(string s)  {
+    variable(string s)
+    {
 
         this->_value = s;
+        this->_one = nullptr;
+        this->_two = nullptr;
     }
 
+    inline bool operator==(const term<T> &rhs) override
+    {
+        return (rhs._one == nullptr) &&
+               (rhs._two == nullptr);
+        //this->_value == rhs._value;
+        //return cmp(lhs,rhs) == 0;
+        //return true;
+    }
     /*
     //copy constructor
     variable(variable<T> const &var)
@@ -145,6 +154,14 @@ public:
     {
         out << this->_value;
     }
+    inline bool operator==(const term<T> &rhs) override
+    {
+        return this->_value == rhs._value && 
+        ((this->_one == nullptr && rhs._one == nullptr) || 
+        *(this->_one) == *(rhs._one) && *(rhs._one) == *(this->_one)) &&
+        ((this->_two == nullptr && rhs._two == nullptr) || 
+        *(this->_two) == *(rhs._two)&&  *(rhs._two) == *(this->_two));
+    }
 };
 
 template <typename T>
@@ -152,28 +169,25 @@ class function : public term<T>
 {
 
 private:
-
     //string _name;
     size_t _arity;
-    
 
     //vector<term_ptr<T>> _t;
 public:
-
     function(string n, size_t k, vector<term_ptr<T>> t)
     {
         this->_value = n;
         _arity = k;
         this->_one = t[0];
-        if(t.size() > 1)
+        if (t.size() > 1)
         {
-               this->_two = t[1];
+            this->_two = t[1];
         }
-     
-        if(t.size() > 2)
+
+        if (t.size() > 2)
         {
             this->_three = t[2];
-        }  
+        }
     }
 
     function(function<T> const &var)
@@ -182,10 +196,10 @@ public:
         _arity = var._arity;
         this->_one = var._one;
         this->_two = var._two;
-        
+
         {
             this->_three = var._three;
-        } 
+        }
     }
 
     function<T> &operator=(function<T> const &var)
@@ -194,7 +208,7 @@ public:
         _arity = var._arity;
         this->_one = var._one;
         this->_two = var._two;
-        
+
         {
             this->_three = var._three;
         }
@@ -202,34 +216,36 @@ public:
 
     void print(ostream &out) const
     {
-        out << this->_value <<"(";
-        
-    
+        out << this->_value << "(";
+
         //for (int i = 0; i < _arity; i++)
         {
-            if(this->_one)
+            if (this->_one)
             {
-                    this->_one->print(out);
-                   
+                this->_one->print(out);
             }
-              if(this->_two)
+            if (this->_two)
             {
-                  out << " , ";
-                    this->_two->print(out);
-                    
+                out << " , ";
+                this->_two->print(out);
             }
-              if(this->_three)
+            if (this->_three)
             {
-                 out << " , ";
-                    this->_three->print(out);
-                  
+                out << " , ";
+                this->_three->print(out);
             }
-            
-            
         }
 
         out << ")";
-    } 
+    }
+    inline bool operator==(const term<T> &rhs) override
+    {
+        this->_value == rhs._value &&
+            ((this->_one == nullptr && rhs._one == nullptr) ||
+             *(this->_one) == *(rhs._one)&&  *(rhs._one) == *(this->_one)) &&
+            ((this->_two == nullptr && rhs._two == nullptr) ||
+             *(this->_two) == *(rhs._two)&&  *(rhs._two) == *(this->_two));
+    }
 };
 
 /*
@@ -266,10 +282,10 @@ void tree<T>::insert(const T& elem)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool unify(const term<T>& t1, const term<T>& t2, Sub<T>& sigma)
+bool unify(const term<T> &t1, const term<T> &t2, Sub<T> &sigma)
 {
     // termTree<bool> tree(t1);
-     /*
+    /*
     auto end =  tree.end();
     for( auto it = tree.begin(); it != end;it++)
     {
@@ -279,15 +295,60 @@ bool unify(const term<T>& t1, const term<T>& t2, Sub<T>& sigma)
         }
     }
     */
-   return false;
+    return false;
 }
 
 template <typename T>
-bool match(term_ptr<T> t, term_ptr<T> t1, vector<int>& path)
+void findMatch(Sub<bool>& match,  term_ptr<T> lhs,  term_ptr<T> rhs)
 {
-    
 
-    return true;
+    if(lhs == nullptr)
+    {
+        return;
+    }
+    if(lhs->_value != rhs->_value)
+    {
+        match.extend(lhs->_value,  rhs);
+        return;
+    }
+    // if(lhs->_one !=  nullptr )
+    findMatch(match, lhs->_one, rhs->_one);
+    //if(lhs->_two !=  nullptr )
+    findMatch(match, lhs->_two, rhs->_two);
+}
+template <typename T>
+bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<bool>& sigma)
+{
+    bool found = false;
+    auto end = t->end();
+    for (auto it = t->begin(); it != end; it++)
+    {
+        // cout <<"checking " << **it <<" with "<< *t1 <<"\n";
+        if (*(*it) == *t1)
+        {
+            cout <<"found " << *t1 <<"\n";
+            *(*it) == *t1;
+            found = true;
+            path = it->_path;
+
+            findMatch(sigma,it->_one, t1->_one );
+            findMatch(sigma,it->_two, t1->_two );
+
+            break;
+        }
+        /*
+        term<bool> *t = (*it);
+        cout << " ** " << (*it)->_value << " ==> ";
+
+        for (auto p : t->_path)
+        {
+            cout << p << " ";
+        }
+        cout << " | " << endl;
+        */
+    }
+
+    return found;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -297,18 +358,45 @@ bool match(term_ptr<T> t, term_ptr<T> t1, vector<int>& path)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>>& rules)
+term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 {
-    vector<int> path ;
-
-    bool x = match(t,rules[8].first,path);
-    for(const auto& r : rules)
+    vector<int> path;
+    /*   
+    bool found = match(t, rules[8].first, path);
+    if(found)
+    {
+        cout <<" found at ";
+        for(auto p :path)
+         {
+                cout << p << " ";
+         }
+         cout <<" | "<< endl;
+    }
+*/
+    //for (const auto &r : rules)
+    for (uint32_t r = 0; r < rules.size(); r++)
     {
 
-        term_ptr<T> f = (r.first);
-        cout <<*f <<" => " << *(r.second)<<"\n";
+        //term_ptr<T> f = (r.first);
+        //cout <<*f <<" => " << *(r.second)<<"\n";
+         Sub<bool> sigma;
+        bool found = match(t, rules[r].first, path,sigma);
+        if (found)
+        {
+            cout << " found at " << r << " -- ";
+            for (auto p : path)
+            {
+                cout << p << " ";
+            }
+            cout << " | " << endl;
+
+             //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
+    
+            t = rewrite(t, *rules[r].second, path, sigma);
+        }
     }
-    cout << *t<<"\n";
+
+    cout << *t << "\n";
     return t;
 }
 
@@ -321,6 +409,9 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>>& rules)
 template <typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T>& sigma)
 {
+
+    
+    sigma.print();
     /*
     cout << " input " << *t << endl;
     cout << " rhs " << *rhs<<"\n";
@@ -363,9 +454,9 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::ostream &operator<<(std::ostream &out, const term<T>& t)
+std::ostream &operator<<(std::ostream &out, const term<T> &t)
 {
-   t.print(out);
+    t.print(out);
 }
 
 #endif // TERM_HPP
