@@ -11,15 +11,16 @@ using namespace std;
 template <typename T>
 class term;
 
-template <typename T>
-using term_ptr = std::shared_ptr<term<T>>;
+//template <typename T>
+//using term_ptr = std::shared_ptr<term<T>>;
 
 template <typename T>
 class term_iterator
 {
 private:
-    stack<term_ptr<T>> _path;
-    //term_ptr<T> _root;
+    stack<term<T> *> _terms;
+    //stack<stack<int>> _paths;
+    //term<T>* _root;
 
 public:
     typedef T value_type;
@@ -31,210 +32,136 @@ public:
     typedef forward_iterator_tag iterator_category;
 
     term_iterator<T>() = delete;
-/*
-    term_iterator<T>(const term<T>& n, bool begin)
-    { 
+
+    term_iterator<T>(term<T> *n, bool begin)
+    {
         //cout << "creating iterator" << "\n";
         uint32_t step = 0;
         //uint32_t currentStep = 0;
         if (begin)
         {
-            //cout << "begin" << "\n";
-            if (n == nullptr)
-                return;
-
-            stack<term_ptr<T>> local_stack;
-
-            // start from root node (set current node to root node)
-            term_ptr<T> curr = make_shared<term<T>>(n);
-
-            // run till stack is not empty or current is
-            // not NULL
-            while (!local_stack.empty() || curr != nullptr)
-            {
-                // Print left children while exist
-                // and keep pushing right into the
-                // stack.
-                while (curr != nullptr)
-                {
-                    //cout <<"pushing "<< curr->_value << " at "<< step << " \n";
-                    _path.push(curr);
-
-                    if (curr->_two)
-                    {
-                        local_stack.push(curr->_two);
-                    }
-
-                    curr = curr->_one;
-                    step = 1;
-                    //currentStep = 1;
-                    //step += currentStep;
-                }
-
-                // We reach when curr is NULL, so We
-                // take out a right child from stack
-                if (local_stack.empty() == false)
-                {
-                    curr = local_stack.top();
-                    step =2;
-                    local_stack.pop();
-                }
-            }
-        }}
-
-*/
-    term_iterator<T>(term_ptr<T> n, bool begin)
-    { 
-        //cout << "creating iterator" << "\n";
-        uint32_t step = 0;
-        //uint32_t currentStep = 0;
-        if (begin)
-        {
-            //cout << "begin" << "\n";
-            if (n == nullptr)
-                return;
-
-            stack<term_ptr<T>> local_stack;
-
-            // start from root node (set current node to root node)
-            term_ptr<T> curr = n;
-
-            // run till stack is not empty or current is
-            // not NULL
-            while (!local_stack.empty() || curr != nullptr)
-            {
-                // Print left children while exist
-                // and keep pushing right into the
-                // stack.
-                while (curr != nullptr)
-                {
-                    //cout <<"pushing "<< curr->_value << " at "<< step << " \n";
-                    _path.push(curr);
-
-                    if (curr->_two)
-                    {
-                        local_stack.push(curr->_two);
-                    }
-
-                    curr = curr->_one;
-                    step = 1;
-                    //currentStep = 1;
-                    //step += currentStep;
-                }
-
-                // We reach when curr is NULL, so We
-                // take out a right child from stack
-                if (local_stack.empty() == false)
-                {
-                    curr = local_stack.top();
-                    step =2;
-                    local_stack.pop();
-                }
-            }
-        }
-        /* 
-        if (begin)
-        {
-            for(; n->_one; n = n->_one)
-        {
-            _path.push(n);
-        }
-        _path.push(n);
-        }
-        */
-        /*term_ptr<T> _root = n;
-        //cout << "one = " << *_root->_one << ":  two = " << *_root->_two << endl;
-        if (begin)
-        {
-
-            if (_root->_two) 
-            {
-                _path.push(_root->_two);
-            }
-              _path.push(_root) ;
-           
-  
-            // Set root as root's left child   
-            _root = _root->_one; 
-
+            vector<int> curPath;
+            preorder(n,  curPath, 0) ;
             /*
-            _path.push(_root);
-            while(n->_one != nullptr)
-            {
-                _path.push(n->_one);
-                //cout << *n->_one << endl;
-                _path.push(n->_two);
-                //cout << *n->_two << endl;
-                 n = n->_one;
-            }*/
+            //cout << "begin" << "\n";
+            if (n == nullptr)
+                return;
 
-        /*
+            stack<term<T> *> local_stack;
 
-            for (; n->_one; n = n->_one)
+            // start from root node (set current node to root node)
+            term<T> *curr = n;
+
+            vector<int> curPath;
+            // run till stack is not empty or current is
+            // not NULL
+            while (!local_stack.empty() || curr != nullptr)
             {
-                cout << *n << endl;
-                _path.push(n);
+                // Print left children while exist
+                // and keep pushing right into the
+                // stack.
+                while (curr != nullptr)
+                {
+                    //curPath.push_back(step);
+                    curr->_path = curPath;
+                    _terms.push(curr);
+                   
+                    cout << "pushing " << curr->_value << " at " << step << " \n";
+                    for (auto p : curPath)
+                    {
+                        cout << p << " ";
+                    }
+                    cout << endl;
+
+                    //_paths.push(curPath);
+
+                    if (curr->_two)
+                    {
+                        local_stack.push(curr->_two.get());
+                    }
+
+                    curr = curr->_one.get();
+                    step = 1;
+
+                
+                    //currentStep = 1;
+                    //step += currentStep;
+                }
+
+                // We reach when curr is NULL, so We
+                // take out a right child from stack
+                if (local_stack.empty() == false)
+                {
+                    curr = local_stack.top();
+                    step = 2;
+                    local_stack.pop();
+                    
+                    
+                    //
+                }
             }
-            / * n = _root;
-            for (; n->_two; n = n->_two)
-            {
-                //cout << *n->_two << endl;
-                _path.push(n);
-            } * /
-            //cout << *n << endl;
-            //_path.push(n);
+            */
         }
-       // _root = _path.top;
-       */
     }
 
-    term_ptr<T> &operator*()
+    void preorder(term<T> *term, vector<int> curPath, int step) 
+{ 
+    if (term == nullptr) 
+        return; 
+  
+    curPath.push_back(step);
+    term->_path = curPath;
+    _terms.push(term);
+
+    preorder(term->_one.get(), curPath, 1);  
+
+    preorder(term->_two.get(), curPath, 2); 
+}  
+
+    term<T> *operator*()
     {
-        term_ptr<T> &t = _path.top();
-        ;
+        term<T> *t = _terms.top();
         return t;
     }
 
-    term_ptr<T> operator->() const
+    term<T> *operator->() const
     {
-        return _path.top();
+        return _terms.top();
     }
+    /*
+    term_iterator<T> operator++(int)
+    {
+        term_iterator<T> tmp(*this);
+        ++this;
+        return tmp;
+    }*/
 
     term_iterator<T> &operator++(int)
     {
-        
-        if (!_path.empty())
+        if (!_terms.empty())
         {
-            if (_path.top()->_two)
+            if (_terms.top()->_two)
             {
-                cout << *_path.top()->_two << endl;
-                _path.push(_path.top()->_two);
-                while (_path.top()->_one)
+                //cout << *_terms.top()->_two << endl;
+                _terms.push(_terms.top()->_two.get());
+                while (_terms.top()->_one)
                 {
-                    _path.push(_path.top()->_one);
+                    _terms.push(_terms.top()->_one.get());
                 }
             }
             else
             {
-                term_ptr<T> child = _path.top();
-                _path.pop();
-                while (!_path.empty() && _path.top()->_two == child)
+                term<T> *child = _terms.top();
+                _terms.pop();
+                while (!_terms.empty() && _terms.top()->_two.get() == child)
                 {
-                    child = _path.top();
-                    _path.pop();
+                    child = _terms.top();
+                    _terms.pop();
                 }
             }
         }
         return *this;
     }
-
-    /*
-        term_iterator<T> operator++(int)
-        {
-            term_iterator<T> tmp(*this);
-            ++this;
-            return tmp;
-        }*/
 
     term_iterator<T> &operator+=(unsigned int n)
     {
@@ -245,27 +172,27 @@ public:
 
     bool operator==(const term_iterator<T> &rhs) const
     {
-        return _path == rhs._path;
+        return _terms == rhs._terms;
     }
 
     bool operator!=(const term_iterator<T> &rhs) const
     {
-        return _path != rhs._path;
+        return _terms != rhs._terms;
     }
 };
 
 /*
 template<typename T>
-term_iterator<T>::term_iterator(term_ptr<T> n, bool begin)
+term_iterator<T>::term_iterator(term<T>* n, bool begin)
 {
     _value = n;
     if(begin)
     {
         for(; n->_one; n = n->_one)
         {
-            _path.push(n);
+            _terms.push(n);
         }
-        _path.push(n);
+        _terms.push(n);
     }
 }*/
 

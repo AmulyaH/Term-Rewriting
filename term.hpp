@@ -37,17 +37,19 @@ using rule = std::pair<term_ptr<T>, term_ptr<T>>;
 // Each term can have subterms in it.
 //
 /////////////////////////////////////////////////////////////////
-
+/*
 template <typename T>
 class termTree
 {
     public:
-    termTree(term_ptr<T> _r):_root(_r){}
-        term_ptr<T> _root = nullptr;
+        
+        termTree(term<T>* &_r):_root(_r){}
+        term<T>* _root = nullptr;
 
-    term_iterator<T> begin() {return term_iterator<T>(_root, true);}
-    term_iterator<T> end() {return term_iterator<T>(_root, false);}
+    term_iterator<T> begin() {return term_iterator<T>(&_root, true);}
+    term_iterator<T> end() {return term_iterator<T>(&_root, false);}
 };
+*/
 
 template <typename T>
 class term
@@ -55,11 +57,28 @@ class term
 
 public:
 string _value;
+vector<int> _path;
 term_ptr<T> _one = nullptr;
     term_ptr<T> _two = nullptr;
     term_ptr<T> _three = nullptr;
 
-
+    term<T> (){}
+    term<T> (const term_ptr<T>& t)
+    {
+        this->_value = t->_value;
+        this->_path = t->_path;
+        this->_one = t->_one;
+        this->_two = t->_two;
+        this->_three = t->_three;
+    }
+    term<T> &operator=(term<T> const &t)
+    {
+         this->_value = t->_value;
+        this->_path = t->_path;
+        this->_one = t->_one;
+        this->_two = t->_two;
+        this->_three = t->_three;
+    }
     
     typedef T                       value_type;
     typedef T*                      pointer;
@@ -68,55 +87,15 @@ term_ptr<T> _one = nullptr;
     typedef ptrdiff_t               difference_type;
     typedef term_iterator<T>        iterator;
     typedef forward_iterator_tag    iterator_category; 
-    
-
-    //iterator begin() {return term_iterator<T>(_root, true);}
-    //iterator end() {return term_iterator<T>(_root,false);}
-
-    //term() {_root = nullptr;}
-
-/*
-    term_ptr<T> insert(term_ptr<T> term, term_ptr<T> at)
-    {
-            if(!at)
-            {
-                return term;
-            }   
-    }*/
-    //term(T c) : {_term = c}
-
-    /*
-    term(const term<T>& rhs)
-    {
-        for(T& x : rhs)
-        {
-            insert(x);
-        }
-    }
-
-    void insert(const T& elem);
-
-    term(std::initializer_list<T> l)
-    {
-        for(const T& x : l)
-        {
-            insert(x);
-        }
-    }
-    */
-
-    /*
-    term(term&& t) : {
-        _term = t._term;
-        t._term = NULL;
-    }*/
-
-    //term& operator=(const term& T);
-   // term& operator=(tree&& T);
 
     template <typename U>
     friend ostream &operator<<(ostream &out, const term<U> &t);
     virtual void print(ostream &out) const = 0;
+
+
+
+    term_iterator<T> begin() {return term_iterator<T>(this, true);}
+    term_iterator<T> end() {return term_iterator<T>(this, false);}
 };
 
 template <typename T>
@@ -221,8 +200,6 @@ public:
         }
     }
 
-  
-
     void print(ostream &out) const
     {
         out << this->_value <<"(";
@@ -289,9 +266,9 @@ void tree<T>::insert(const T& elem)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool unify( term_ptr<T> t1,   term_ptr<T> t2, Sub<T> &sigma)
+bool unify(const term<T>& t1, const term<T>& t2, Sub<T>& sigma)
 {
-     termTree<bool> tree(t1);
+    // termTree<bool> tree(t1);
      /*
     auto end =  tree.end();
     for( auto it = tree.begin(); it != end;it++)
@@ -308,19 +285,7 @@ bool unify( term_ptr<T> t1,   term_ptr<T> t2, Sub<T> &sigma)
 template <typename T>
 bool match(term_ptr<T> t, term_ptr<T> t1, vector<int>& path)
 {
-    termTree<bool> tree(t);
-    auto end = tree.end();
-
-    cout << *t1 << endl;
-    term_iterator<bool> it = (tree.begin());
-    for( auto it = tree.begin(); it != end;it++)
-    {
-        cout << *(*it) << endl;
-         if(it->_value == t1->_value)
-         {
-             return true;
-         }
-    }
+    
 
     return true;
 }
@@ -332,11 +297,11 @@ bool match(term_ptr<T> t, term_ptr<T> t1, vector<int>& path)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
+term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>>& rules)
 {
     vector<int> path ;
 
-    bool x =match(t,rules[8].first,path);
+    bool x = match(t,rules[8].first,path);
     for(const auto& r : rules)
     {
 
@@ -354,8 +319,9 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const Sub<T> &sigma)
+term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T>& sigma)
 {
+    /*
     cout << " input " << *t << endl;
     cout << " rhs " << *rhs<<"\n";
     term<T>& sub = sigma("a");
@@ -397,9 +363,9 @@ term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-std::ostream &operator<<(std::ostream &out, const term<T> &tem)
+std::ostream &operator<<(std::ostream &out, const term<T>& t)
 {
-   tem.print(out);
+   t.print(out);
 }
 
 #endif // TERM_HPP
