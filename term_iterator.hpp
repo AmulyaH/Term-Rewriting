@@ -105,20 +105,25 @@ public:
     }
 
     void preorder(term<T> *term, vector<int> curPath, int step) 
-{ 
-    if (term == nullptr) 
-        return; 
-  
-    if(step !=0) {
-        curPath.push_back(step);
-    }
-    term->_path = curPath;
-    _terms.push(term);
+    { 
+        if (term == nullptr) 
+            return; 
+    
+        if(step !=0) {
+            curPath.push_back(step);
+        }
+        term->_path = curPath;
+        _terms.push(term);
 
-    preorder(term->_one.get(), curPath, 1);  
+        /* if(term->_one != nullptr)
+        {
+            cout << *term->_one << endl;
+        } */
 
-    preorder(term->_two.get(), curPath, 2); 
-}  
+        preorder(term->_one.get(), curPath, 1);  
+
+        preorder(term->_two.get(), curPath, 2); 
+    }  
 
     term<T> *operator*()
     {
@@ -137,6 +142,8 @@ public:
         ++this;
         return tmp;
     }*/
+
+
 
     term_iterator<T> &operator++(int)
     {
@@ -165,6 +172,16 @@ public:
         return *this;
     }
 
+/*
+term_iterator<T> &operator++(int)
+    {
+        if (!_terms.empty())
+        {
+           _terms.pop();
+        }
+        return *this;
+    }
+*/
     term_iterator<T> &operator+=(unsigned int n)
     {
         for (int i = 0; i < n; i++)

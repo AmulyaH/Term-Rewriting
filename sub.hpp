@@ -28,9 +28,9 @@ class Sub
     std::unordered_map<std::string, term_ptr<T>> _map;
 
 public:
-    term<T>& operator()(std::string s) const
+    term_ptr<T> operator()(std::string s) const
     {
-        return *_map.at(s);
+        return _map.at(s);
     }
 
     bool contains(std::string s) const

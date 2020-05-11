@@ -147,7 +147,7 @@ protected:
 public:
     literal(T lit)
     {
-        this->_value = (lit == true) ? "True" : "False";
+        this->_value =   std::to_string(lit);// (lit == true) ? "True" : "False";
     }
 
     void print(ostream &out) const
@@ -319,16 +319,15 @@ bool unify(const term<T> &t1, const term<T> &t2, Sub<T> &sigma)
 }
 
 template <typename T>
-void findMatch(Sub<bool> &match, term_ptr<T> lhs, term_ptr<T> rhs)
+void findMatch(Sub<T> &match, term_ptr<T> lhs, term_ptr<T> rhs)
 {
-
     if (lhs == nullptr)
     {
         return;
     }
     if (lhs->_value != rhs->_value)
     {
-        match.extend(lhs->_value, rhs);
+        match.extend(rhs->_value, lhs);
         return;
     }
     // if(lhs->_one !=  nullptr )
@@ -337,13 +336,13 @@ void findMatch(Sub<bool> &match, term_ptr<T> lhs, term_ptr<T> rhs)
     findMatch(match, lhs->_two, rhs->_two);
 }
 template <typename T>
-bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<bool> &sigma)
+bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<T> &sigma)
 {
     bool found = false;
     auto end = t->end();
     for (auto it = t->begin(); it != end; it++)
     {
-        cout << "checking for" << *t << " of " << **it << " with " << *t1 << "\n";
+        //cout << "checking for" << *t << " of " << **it << " with " << *t1 << "\n";
         if (*(*it) == *t1)
         {
             cout << "found " << *t1 << "\n";
@@ -356,16 +355,6 @@ bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<bool> &sigma)
 
             break;
         }
-        /*
-        term<bool> *t = (*it);
-        cout << " ** " << (*it)->_value << " ==> ";
-
-        for (auto p : t->_path)
-        {
-            cout << p << " ";
-        }
-        cout << " | " << endl;
-        */
     }
 
     return found;
@@ -381,28 +370,16 @@ template <typename T>
 term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 {
     vector<int> path;
-    /*   
-    bool found = match(t, rules[8].first, path);
-    if(found)
-    {
-        cout <<" found at ";
-        for(auto p :path)
-         {
-                cout << p << " ";
-         }
-         cout <<" | "<< endl;
-    }
-*/
+  
     //for (const auto &r : rules)
     while (true)
     {
         bool foundInThisRun = false;
         for (uint32_t r = 0; r < rules.size(); r++)
         {
-
-            //term_ptr<T> f = (r.first);
-            //cout <<*f <<" => " << *(r.second)<<"\n";
-            Sub<bool> sigma;
+            term_ptr<T> f = (rules[r].first);
+            cout <<*f <<" => " << *(rules[r].second)<<"\n";
+            Sub<T> sigma;
             bool found = match(t, rules[r].first, path, sigma);
             if (found)
             {
@@ -449,11 +426,11 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 template <typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const Sub<T> &sigma)
 {
-
+   
     sigma.print();
 
     term_ptr<T> currTerm = t;
-    for (uint16_t i = 0; i < path.size() - 1; i++)
+    for (uint16_t i = 0; i < path.size()-1; i++)
     {
         uint16_t p = path[i];
         if (p == 1)
@@ -468,29 +445,31 @@ term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const
     cout << "repalcing " << *currTerm << " with rhs " << *rhs << endl;
     if (path.back() == 1)
     {
-        currTerm->_one = rhs;
-        /*
-        if (sigma.contains(*rhs))
+        if (true && rhs && sigma.contains(rhs->_value))
         {
-            currTerm->_one = sigma(*rhs);
+            term_ptr<T> sub = sigma(rhs->_value);
+            sub->_value = rhs->_value;
+            currTerm->_one = sub;
         }
         else
         {
             currTerm->_one = rhs;
-        }*/
+        }
     }
     else if (path.back() == 2)
     {
-        currTerm->_two = rhs;
-        /*
-        if (sigma.contains(*rhs))
+        //currTerm->_two = rhs;
+        
+        if (true && rhs && sigma.contains(rhs->_value))
         {
-            currTerm->_two = sigma(*rhs);
+            term_ptr<T> sub = sigma(rhs->_value);
+            sub->_value = rhs->_value;
+            currTerm->_two = sub;
         }
         else
         {
             currTerm->_two = rhs;
-        }*/
+        }
     }
 
     /*

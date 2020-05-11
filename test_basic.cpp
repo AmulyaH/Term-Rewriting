@@ -83,11 +83,12 @@ int main()
 {
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
-
+    //->(and(0 , 0) , 0)
+    //to(tand(lit(false),lit(false)),lit(false));
     term_ptr<bool> ex = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
     cout << *example << endl;
 
-     auto it = example->begin();
+    /*  auto it = example->begin();
      auto end = example->end();
     
      for( auto it = example->begin(); it != end;it++)
@@ -102,7 +103,9 @@ int main()
          cout <<" | "<< endl;
          
     }
-     cout << *example << endl;
+ */
+
+     //cout << *example << endl;
     /*
     for(term<bool>& t : *example)
     {
@@ -163,10 +166,28 @@ int main()
      term_ptr<bool> t2 =  tand(lit(true),lit(true));
      //sigma.extend("a && a", );
     //unify(t1,t2, sigma);
-
+  */
+   
     Sub<bool> match;
     match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
     example = rewrite(example, contra.second, vector<int>(), match);
     cout << *example << endl;
-    */
+
+     auto it = example->begin();
+     auto end = example->end();
+    
+    for( auto it = example->begin(); it != end;it++)
+    {
+        term<bool>* t =   (*it);
+         cout <<" ** "<< (*it)->_value <<" ==> ";
+          
+         for(auto p :t->_path)
+         {
+                cout << p << " ";
+         }
+         cout <<" | "<< endl;
+         
+    }
+   
+    
  }

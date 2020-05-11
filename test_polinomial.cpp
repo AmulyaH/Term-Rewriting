@@ -110,10 +110,11 @@ int main()
 
     };
 
-    while(example)
+    //while(example)
     {
         cout << "=> " << *example << endl;
         example = reduce(example, rules);
+        cout << "reduced to " <<  *example << endl;;
     }
     return 0;
 }
