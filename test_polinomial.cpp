@@ -78,6 +78,8 @@ int main()
     term_ptr<int> example = ttimes(tplus(ttimes(lit(3), var("x")), ttimes(var("x"),ttimes(lit(3),var("x")))),
                                    tplus(lit(2), ttimes(var("x"), lit(1))));
 
+    term_ptr<int> ex = ttimes(var("x"), var("x"));
+
     vector<rule<int>> rules {
         // distributivity
         rule<int>(ttimes(tplus(var("a"), var("b")), var("c")),
@@ -112,9 +114,9 @@ int main()
 
     //while(example)
     {
-        cout << "=> " << *example << endl;
-        example = reduce(example, rules);
-        cout << "reduced to " <<  *example << endl;;
+        cout << "=> " << *ex << endl;
+        ex = reduce(ex, rules);
+        cout << "reduced to " <<  *ex << endl;;
     }
     return 0;
 }

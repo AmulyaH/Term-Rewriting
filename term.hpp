@@ -342,7 +342,7 @@ bool match(term_ptr<T> t, term_ptr<T> t1, vector<int> &path, Sub<T> &sigma)
     auto end = t->end();
     for (auto it = t->begin(); it != end; it++)
     {
-        //cout << "checking for" << *t << " of " << **it << " with " << *t1 << "\n";
+        cout << "checking for" << *t << " of " << **it << " with " << *t1 << "\n";
         if (*(*it) == *t1)
         {
             cout << "found " << *t1 << "\n";
@@ -378,19 +378,21 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
         for (uint32_t r = 0; r < rules.size(); r++)
         {
             term_ptr<T> f = (rules[r].first);
-            cout <<*f <<" => " << *(rules[r].second)<<"\n";
+            //cout <<*f <<" => " << *(rules[r].second)<<"\n";
             Sub<T> sigma;
             bool found = match(t, rules[r].first, path, sigma);
             if (found)
             {
                 foundInThisRun = true;
+                if(false)
+                {
                 cout << " found at " << r << " -- ";
                 for (auto p : path)
                 {
                     cout << p << " ";
                 }
                 cout << " | " << endl;
-
+            }
                 //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
                 cout << "rewrite " << *t << endl;
                 cout << "rhs  " << *rules[r].second << endl;
@@ -401,7 +403,7 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
         }
         if (!foundInThisRun)
         {
-            if(
+            if( false  && 
             t->_value == "->" && 
             (t->_one !=nullptr && t->_two !=nullptr) &&
             *t->_one == *t->_two ) 
@@ -426,10 +428,12 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules)
 template <typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const Sub<T> &sigma)
 {
-   
-    sigma.print();
+
+    //sigma.print();
 
     term_ptr<T> currTerm = t;
+    if(path.size()>0)
+    {
     for (uint16_t i = 0; i < path.size()-1; i++)
     {
         uint16_t p = path[i];
@@ -442,13 +446,15 @@ term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const
             currTerm = currTerm->_two;
         }
     }
-    cout << "repalcing " << *currTerm << " with rhs " << *rhs << endl;
+    //cout << "repalcing " << *currTerm << " with rhs " << *rhs << endl;
     if (path.back() == 1)
     {
-        if (true && rhs && sigma.contains(rhs->_value))
+        //currTerm->_one = rhs;
+        
+        if (false && rhs && sigma.contains(rhs->_value))
         {
             term_ptr<T> sub = sigma(rhs->_value);
-            sub->_value = rhs->_value;
+            //sub->_value = rhs->_value;
             currTerm->_one = sub;
         }
         else
@@ -460,10 +466,10 @@ term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const
     {
         //currTerm->_two = rhs;
         
-        if (true && rhs && sigma.contains(rhs->_value))
+        if (false && rhs && sigma.contains(rhs->_value))
         {
             term_ptr<T> sub = sigma(rhs->_value);
-            sub->_value = rhs->_value;
+            //sub->_value = rhs->_value;
             currTerm->_two = sub;
         }
         else
@@ -471,6 +477,18 @@ term_ptr<T> rewrite(term_ptr<T> t, term_ptr<T> rhs, std::vector<int> path, const
             currTerm->_two = rhs;
         }
     }
+}else
+{
+    if ( sigma.contains(rhs->_value))
+        {
+            term_ptr<T> sub = sigma(rhs->_value);
+            //sub->_value = rhs->_value;
+           return sub;
+        }else
+        {
+             return rhs;
+        }
+}
 
     /*
     cout << " input " << *t << endl;
