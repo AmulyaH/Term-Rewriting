@@ -37,19 +37,6 @@ using rule = std::pair<term_ptr<T>, term_ptr<T>>;
 // Each term can have subterms in it.
 //
 /////////////////////////////////////////////////////////////////
-/*
-template <typename T>
-class termTree
-{
-    public:
-        
-        termTree(term<T>* &_r):_root(_r){}
-        term<T>* _root = nullptr;
-
-    term_iterator<T> begin() {return term_iterator<T>(&_root, true);}
-    term_iterator<T> end() {return term_iterator<T>(&_root, false);}
-};
-*/
 
 template <typename T>
 class term
@@ -68,8 +55,7 @@ public:
     typedef term_iterator<T> iterator;
     typedef forward_iterator_tag iterator_category;
 
-template <class U>
-    term<T> &operator=( term<U> const& var)
+   virtual term<T> &operator=( term<T> const& var)
     {
         this->_name = var._name;
         this->_path = var._path;
@@ -78,6 +64,12 @@ template <class U>
 
 template <class U>
     term<T>( term<U> const& var ){
+
+        this->_name = var._name;
+        this->_path = var._path;
+    }
+
+    term (term<T> const& var ){
 
         this->_name = var._name;
         this->_path = var._path;
@@ -207,7 +199,7 @@ public:
         this->_name = n;
     }
 
-    function(function<T> const &var)
+    function(const function<T>&var)
     {
         this->_value = var._value;
         this->_arity = var._arity;
@@ -216,7 +208,7 @@ public:
     }
 
     //template <class U>
-    function<T> &operator=( function<T> const& var)
+    function<T> &operator=(function<T> const& var)
     {
         //term<U>::operator=(var);
                  cout <<" fffff assing operator \n";
@@ -281,7 +273,7 @@ bool unify(const term<T> &t1, const term<T> &t2, Sub<T> &sigma)
     return false;
 }
 
-template <typename T>
+/* template <typename T>
 void findMatch(Sub<T> &match, term_ptr<T> lhs, term_ptr<T> rhs)
 {
     if (lhs == nullptr)
@@ -298,6 +290,7 @@ void findMatch(Sub<T> &match, term_ptr<T> lhs, term_ptr<T> rhs)
     //if(lhs->_two !=  nullptr )
     findMatch(match, lhs->_two, rhs->_two);
 }
+ */
 
 template <typename T>
 bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma, int step)
@@ -314,7 +307,7 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
     if(t->_name == rule->_name)
     {
         cout <<c1.size() <<" "<< rC.size() <<endl;
-         if(c1.size() != rC.size() && rule->isVariable())
+         if(rule->isVariable())   // c1.size() != rC.size() && (this was inside if rule)
          {
              sigma.extend(rule->_name, t);
              return true;
@@ -323,25 +316,22 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
         for(uint32_t i = 0; i < c1.size() ; i++)
         {
               //if( i == 0 ){path.push_back(i);}
-              path.push_back(i);
+            path.push_back(i);
             if(preorder(c1[i],  rC[i], path, sigma, i))
             {
                path.erase(path.end() - 1); 
                 found =  true;
-            }else
+            }else if(preorder(c1[i],  rule, path, sigma, i))
             {
-               return false;
+               return true; 
+            }
+            else
+            {
+                return false;
             }
             
         }
-         if (c1.size() != 0) 
-        {
-            if( rC.size() != 0)
-            {
-
-            }
-
-        }
+       
     }else if (rule->isVariable())
     {
         sigma.extend(rule->_name, t);
@@ -349,7 +339,7 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
     }
     else
     {
-         for(uint32_t i = 0; i < c1.size() ; i++)
+       for(uint32_t i = 0; i < c1.size() ; i++)
         {
               path.push_back(i);
             if(preorder(c1[i],  rule, path, sigma, i))
@@ -364,7 +354,7 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
             
         }
     }
-    
+
     return found;
 }
 
@@ -454,15 +444,39 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
     vector<term_ptr<T>> c1 = t->getChildren();
 
     vector<term_ptr<T>> rh = rhs.getChildren();
+    bool contains = false;
+    term_ptr<T> ruleSubstitution;
+
+    for(term<bool>& tt : *t)
+    {
+        cout << tt << endl;
+        
+    } 
+
+    for(term<bool>& rh : rhs)
+    {
+        /* if(rh->isVariable())
+        {
+            //contains = sigma.contains(rh->_name);
+            if(contains)
+            {
+                //ruleSubstitution = sigma(rh->_name);
+                //t->copy(rhs._name);
+                //cout <<" root is " << *t << endl;
+
+
+            }
+        } */
+    }
 
     string s ;
-    //term_ptr<T> subs;
+    term_ptr<T> p1 = t;
 
     auto it = rhs.begin();
     auto end = rhs.end();
 
-    bool contains = false;
-    term_ptr<T> ruleSubstitution;
+    
+    
     //term<T> *  root= *it;
     //*t = rhs;
     for (; it != end; it++)
@@ -475,7 +489,7 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
                 ruleSubstitution = sigma(it->_name);
 
                 t->copy(rhs._name);
-                //*t = rhs;
+                *t = rhs;
                    cout <<" root is " << *t << endl;
                 //t->_name = rhs._name;
                 //term *t;
@@ -495,11 +509,6 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
          //root=*it;   
         }
         
-    }
-   
-    for (int i = 0; i <= path.size(); i++)
-    {
-       //x = c1[i];
     }
 
     return t;

@@ -11,13 +11,13 @@ using namespace std;
 template <typename T>
 class term;
 
-//template <typename T>
-//using term_ptr = std::shared_ptr<term<T>>;
+/* template <typename T>
+using term_ptr = std::shared_ptr<term<T>>; */
 
 template <typename T>
 class term_iterator
 {
-private:
+protected:
     queue<term<T> *> _terms;
 
 public:
@@ -40,6 +40,9 @@ public:
             preorder(n,  curPath, 0) ;
         }
     }
+
+    term_iterator<T>(const term_iterator<T>& i) : _terms(i._terms) {}
+    
 
     void preorder(term<T> *term, vector<int> curPath, int step) 
     { 
@@ -64,10 +67,10 @@ public:
 
     term_iterator<T>& operator++();
 
-    term<T> *& operator*()
+    term<T>& operator*()
     {
         term<T> * t = _terms.front();
-        return t;
+        return *t;
     }
 
     term<T> * operator->() const
@@ -75,13 +78,11 @@ public:
         return _terms.front();
     }
 
-    term_iterator<T> &operator++(int)
+    term_iterator<T> operator++(int)
     {
-        if(!_terms.empty())
-        {
-            _terms.pop();
-        }
-        return *this;
+        term_iterator<T> tmp(*this);
+        ++*this;
+        return tmp;
     }
 
     term_iterator<T> &operator+=(unsigned int n)
@@ -102,28 +103,11 @@ public:
     }
 };
 
-/*
-template<typename T>
-term_iterator<T>::term_iterator(term<T>* n, bool begin)
-{
-    _value = n;
-    if(begin)
-    {
-        for(; n->_one; n = n->_one)
-        {
-            _terms.push(n);
-        }
-        _terms.push(n);
-    }
-}*/
-
 template<typename T>
 term_iterator<T>& term_iterator<T>::operator++()
 {
     if(!_terms.empty())
     {
-        vector<int> curPath;
-        preorder(_terms,  curPath, 0) ;
         _terms.pop();
     }
     return *this;

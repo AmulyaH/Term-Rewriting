@@ -86,10 +86,10 @@ int main()
     term_ptr<bool> ex = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
     cout << *example << endl;
 
-    /* for(term<bool>& t : *example)
+    for(term<bool>& t : *example)
     {
         cout << t << endl;
-    }  */
+    }  
 
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
