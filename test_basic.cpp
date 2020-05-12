@@ -83,52 +83,30 @@ int main()
 {
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
-    //->(and(0 , 0) , 0)
-    //to(tand(lit(false),lit(false)),lit(false));
     term_ptr<bool> ex = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
     cout << *example << endl;
 
-    /*  auto it = example->begin();
-     auto end = example->end();
-    
-     for( auto it = example->begin(); it != end;it++)
-    {
-        term<bool>* t =   (*it);
-         cout <<" ** "<< (*it)->_value <<" ==> ";
-          
-         for(auto p :t->_path)
-         {
-                cout << p << " ";
-         }
-         cout <<" | "<< endl;
-         
-    }
- */
-
-     //cout << *example << endl;
-    /*
-    for(term<bool>& t : *example)
+    /* for(term<bool>& t : *example)
     {
         cout << t << endl;
-    }
+    }  */
 
-/*
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
-    cout << *example << endl;
+    //cout << *example << endl;
 
-    termTree<bool> tree(ex);
+    //termTree<bool> term(*ex);
     //term_iterator<bool> it = (tree.begin());
     //term_ptr<bool>  t = *it;
 
     //cout << *(*it) << endl;
     //cout << *(*(it++)) << endl;
-    auto end = tree.end();
-    for( auto it = tree.begin(); it != end;it++)
+    //auto end = tree.end();
+    /* for( auto it = term.begin(); it != end;it++)
     {
          cout << *(*it) << endl;
-    }
-   */
+    } */
+
     //test iterating
     //this should print every term (Not Necessarily in this order)
     // output: ->(and(not(or(x,x)), not(true)), false)
@@ -141,11 +119,7 @@ int main()
     // output: true
     // output: false
 
-    /*
-    for(term<bool>& t : *example)
-    {
-        cout << t << endl;
-    }*/
+    
 
    // cout << *example->begin() << endl;
     //,cout << *(example->begin()++) << endl;
@@ -170,16 +144,17 @@ int main()
    
     Sub<bool> match;
     match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
-    example = rewrite(example, contra.second, vector<int>(), match);
+    example = rewrite(example, *contra.second, vector<int>(), match);
     cout << *example << endl;
+    cout <<endl;
 
-     auto it = example->begin();
+    /*  auto it = example->begin();
      auto end = example->end();
     
     for( auto it = example->begin(); it != end;it++)
     {
         term<bool>* t =   (*it);
-         cout <<" ** "<< (*it)->_value <<" ==> ";
+        cout <<" ** "<< (*it)->_value <<" ==> ";
           
          for(auto p :t->_path)
          {
@@ -187,7 +162,7 @@ int main()
          }
          cout <<" | "<< endl;
          
-    }
+    } */
    
     
  }

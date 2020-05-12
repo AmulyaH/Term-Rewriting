@@ -82,14 +82,20 @@ int main()
 {
 
     // We are going to try to get my rewrite system to come up with the following derivation
-    // (!(a \/ a) /\ !true) -> false
+    // (!(a \/ a) /\ !true) -> false   
     // (!a /\ !true) -> false
     // !(a \/ true) -> false
     // (!a /\ false) -> false
     // false -> false
     // !false
     // true
-    term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
+    term_ptr<bool> example = tor(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
+
+    term_ptr<bool> example1 = tor(var("x"), var("x"));
+
+    //term_ptr<bool> rule1 = to(var("a"), lit(false));
+    vector<rule<bool>> rules1 { rule<bool>(tand(tnot(var("a")), tnot(var("b"))), tnot(tor(var("a"), var("b"))))};
+    
 
     vector<rule<bool>> rules {
         //double negation
@@ -118,11 +124,39 @@ int main()
         rule<bool>(tor(lit(true), var("a")),   lit(true))
     };
 
-    //while(example)
+    while(example)
+    {
+        cout << "=> " << *example << endl;
+
+        vector<int> path;
+
+        Sub<bool> sigma;
+        int step = 0;
+        bool found = false;
+
+        auto it = example->begin();
+        auto end = example->end();
+
+        example = reduce(example, rules1);  
+        /*
+        //for(const auto rule)
+        for (; it != end; it++)
+          {
+            cout << **it << endl;
+            //example = reduce(example, rules);
+           // cout  <<"reduced to "<< *example << endl;
+              
+          }*/
+
+     
+    }
+
+    while(example)
     {
         cout << "=> " << *example << endl;
         example = reduce(example, rules);
         cout  <<"reduced to "<< *example << endl;
     }
+
     return 0;
 }

@@ -2,7 +2,7 @@
 #define TERM_ITERATOR_HPP
 
 #include <exception>
-#include <stack>
+#include <queue>
 #include <iostream>
 #include <memory>
 
@@ -18,9 +18,7 @@ template <typename T>
 class term_iterator
 {
 private:
-    stack<term<T> *> _terms;
-    //stack<stack<int>> _paths;
-    //term<T>* _root;
+    queue<term<T> *> _terms;
 
 public:
     typedef T value_type;
@@ -35,72 +33,11 @@ public:
 
     term_iterator<T>(term<T> *n, bool begin)
     {
-        //cout << "creating iterator" << "\n";
         uint32_t step = 0;
-        //uint32_t currentStep = 0;
         if (begin)
         {
             vector<int> curPath;
             preorder(n,  curPath, 0) ;
-            /*
-            //cout << "begin" << "\n";
-            if (n == nullptr)
-                return;
-
-            stack<term<T> *> local_stack;
-
-            // start from root node (set current node to root node)
-            term<T> *curr = n;
-
-            vector<int> curPath;
-            // run till stack is not empty or current is
-            // not NULL
-            while (!local_stack.empty() || curr != nullptr)
-            {
-                // Print left children while exist
-                // and keep pushing right into the
-                // stack.
-                while (curr != nullptr)
-                {
-                    //curPath.push_back(step);
-                    curr->_path = curPath;
-                    _terms.push(curr);
-                   
-                    cout << "pushing " << curr->_value << " at " << step << " \n";
-                    for (auto p : curPath)
-                    {
-                        cout << p << " ";
-                    }
-                    cout << endl;
-
-                    //_paths.push(curPath);
-
-                    if (curr->_two)
-                    {
-                        local_stack.push(curr->_two.get());
-                    }
-
-                    curr = curr->_one.get();
-                    step = 1;
-
-                
-                    //currentStep = 1;
-                    //step += currentStep;
-                }
-
-                // We reach when curr is NULL, so We
-                // take out a right child from stack
-                if (local_stack.empty() == false)
-                {
-                    curr = local_stack.top();
-                    step = 2;
-                    local_stack.pop();
-                    
-                    
-                    //
-                }
-            }
-            */
         }
     }
 
@@ -115,73 +52,38 @@ public:
         term->_path = curPath;
         _terms.push(term);
 
-        /* if(term->_one != nullptr)
-        {
-            cout << *term->_one << endl;
-        } */
+        std::vector<term_ptr<T>> children = term->getChildren();
 
-        preorder(term->_one.get(), curPath, 1);  
+        for(uint32_t ch = 0 ; ch < children.size() ; ch++)
+        {   
+            term_ptr<T> child=  children[ch];
+             preorder(child.get(), curPath, ch);  
+        }
 
-        preorder(term->_two.get(), curPath, 2); 
     }  
 
-    term<T> *operator*()
+    term_iterator<T>& operator++();
+
+    term<T> *& operator*()
     {
-        term<T> *t = _terms.top();
+        term<T> * t = _terms.front();
         return t;
     }
 
-    term<T> *operator->() const
+    term<T> * operator->() const
     {
-        return _terms.top();
+        return _terms.front();
     }
-    /*
-    term_iterator<T> operator++(int)
-    {
-        term_iterator<T> tmp(*this);
-        ++this;
-        return tmp;
-    }*/
-
-
 
     term_iterator<T> &operator++(int)
     {
-        if (!_terms.empty())
+        if(!_terms.empty())
         {
-            if (_terms.top()->_two)
-            {
-                //cout << *_terms.top()->_two << endl;
-                _terms.push(_terms.top()->_two.get());
-                while (_terms.top()->_one)
-                {
-                    _terms.push(_terms.top()->_one.get());
-                }
-            }
-            else
-            {
-                term<T> *child = _terms.top();
-                _terms.pop();
-                while (!_terms.empty() && _terms.top()->_two.get() == child)
-                {
-                    child = _terms.top();
-                    _terms.pop();
-                }
-            }
+            _terms.pop();
         }
         return *this;
     }
 
-/*
-term_iterator<T> &operator++(int)
-    {
-        if (!_terms.empty())
-        {
-           _terms.pop();
-        }
-        return *this;
-    }
-*/
     term_iterator<T> &operator+=(unsigned int n)
     {
         for (int i = 0; i < n; i++)
@@ -215,11 +117,16 @@ term_iterator<T>::term_iterator(term<T>* n, bool begin)
     }
 }*/
 
-/*
 template<typename T>
-term_iterator<T>& term_iterator<T> :: operator++() 
+term_iterator<T>& term_iterator<T>::operator++()
 {
-    
-}*/
+    if(!_terms.empty())
+    {
+        vector<int> curPath;
+        preorder(_terms,  curPath, 0) ;
+        _terms.pop();
+    }
+    return *this;
+}
 
 #endif // TERM_ITERATOR_HPP
