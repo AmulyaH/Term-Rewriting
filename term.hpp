@@ -210,6 +210,33 @@ public:
         this->_name = var._name;
     }
 
+    function<T> &operator=(term<T> const& var)
+    {
+        try
+        {
+            const function<T>* varF = dynamic_cast<const function<T>*> (&var);
+            *this = *varF;
+
+        }
+        catch(const std::exception& e)
+        {
+            try
+            {
+                /*  const variable<T>* varV = dynamic_cast<const variable<T>*> (&var);
+                    *this = *varV; */
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+            
+        }
+        
+       
+        return *this;
+    }
+    
+
     //template <class U>
     function<T> &operator=(function<T> const& var)
     {
@@ -222,6 +249,18 @@ public:
         this->_name = var._name;
         return *this;
     }
+
+   /*  function<T> &operator=(variable<T> const& var)
+    {
+        //term<U>::operator=(var);
+                 cout <<" fffff assing operator \n";
+
+        this->_value = var._value;
+        this->_arity = 0;
+        this->children = vector<term<T>{};
+        this->_name = "";
+        return *this;
+    } */
 
     vector<term_ptr<T>> getChildren()
     {
@@ -343,6 +382,11 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
                 return false;
             }
             
+        }
+
+        if(c1.size()  == 0)
+        {
+            return true;
         }
        
     }else if (rule->isVariable())
