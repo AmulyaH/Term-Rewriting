@@ -113,9 +113,6 @@ int main()
         rule<int>(tplus(lit(0), var("a")), var("a"))
 
     };
-
-    //term_ptr<int> ex=lit(0);
-    //cout << "=> " << *rules[4].second << endl;
     while(example)
     {
         cout << "=> " << *example << endl;

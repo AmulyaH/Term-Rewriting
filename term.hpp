@@ -150,7 +150,8 @@ public:
 public:
     literal(T lit)
     {
-        this->_value = lit; //  std::to_string(lit);// (lit == true) ? "True" : "False";
+        this->_value = lit;
+        this->_name = lit; //  std::to_string(lit);// (lit == true) ? "True" : "False";
     }
 
     void print(ostream &out) const
@@ -234,7 +235,7 @@ public:
     function<T> &operator=(function<T> const &var)
     {
         //term<U>::operator=(var);
-        cout << " fffff assing operator \n";
+        ///cout << " fffff assing operator \n";
 
         this->_value = var._value;
         this->_arity = var._arity;
@@ -519,46 +520,6 @@ void substitue(term<T> &t1, const Sub<T> &sigma)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> rewrite2(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Sub<T> &sigma)
-{
-    bool contains = false;
-    term_ptr<T> ruleSubstitution;
-
-    vector<term_ptr<T>> c1 = t->getChildren();
-
-    vector<term_ptr<T>> rh = rhs.getChildren();
-
-    cout << " t is :" << *t << endl;
-
-    term_ptr<T> cur = t;
-
-    cout << " cur is :" << *cur << endl;
-
-    for (int i = 0; i < path.size(); i++)
-    {
-        c1 = cur->getChildren();
-        cur = c1[path[i]];
-    }
-
-    copy(*cur.get(), rhs);
-
-    cout << " cur is :" << *cur << endl;
-
-    cout << " t is :" << *t << endl;
-
-    for (term<bool> &it : *cur)
-    {
-        substitue(it, sigma);
-        cout << *cur << endl;
-
-        cout << endl;
-    }
-
-    cout << " adadasdada is " << *t << endl;
-    return t;
-}
-
-template <typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Sub<T> &sigma)
 {
     term_ptr<T> ruleSubstitution;
@@ -573,9 +534,12 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Su
 
     for (int i = 0; i < path.size(); i++)
     {
+        cout << " in for loop , cur is :" << *cur << endl;
         c1 = cur->getChildren();
         cur = c1[path[i]];
     }
+
+    cout << "after for loop , cur is :" << *cur << endl;
     if (!rhs.isVariable())
     {
         copy(*cur.get(), rhs);
@@ -587,6 +551,7 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Su
 
             //cout << endl;
         }
+        cout << "cur after sub" << *cur << endl;
     }
     else
     {
@@ -607,7 +572,7 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Su
                 const literal<T> *varL = dynamic_cast<const literal<T> *>(sub.get());
 
                 return make_shared<literal<T>>(literal<T>(varL->_value));
-                cout << *cur << endl;
+                //cout << *cur << endl;
             }
         }
     }
