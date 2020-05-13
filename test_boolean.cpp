@@ -91,14 +91,6 @@ int main()
     // true
     term_ptr<bool> example = to(tnot(tor(tor(var("x"),var("x")),lit(true))),lit(false));
 
-    term_ptr<bool> example1 = tnot(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
-
-    //term_ptr<bool> example1 = tor(var("x"), var("x"));
-
-    //term_ptr<bool> rule1 = to(var("a"), lit(false));
-    vector<rule<bool>> rules1 { rule<bool>(to(var("a"), lit(false)), tnot(var("a")))};
-    
-
     vector<rule<bool>> rules {
         //double negation
         rule<bool>(tnot(tnot(var("a"))), var("a")),
@@ -126,42 +118,12 @@ int main()
         rule<bool>(tor(lit(true), var("a")),   lit(true))
     };
 
-   /*  while(false && example)
-    {
-        cout << "=> " << *example << endl;
-
-        vector<int> path;
-
-        Sub<bool> sigma;
-        int step = 0;
-        bool found = false;
-
-        auto it = example->begin();
-        auto end = example->end();
-
-        example = reduce(example, rules1);  
-        /*
-        //for(const auto rule)
-        for (; it != end; it++)
-          {
-            cout << **it << endl;
-            //example = reduce(example, rules);
-           // cout  <<"reduced to "<< *example << endl;
-              
-          }*/
-
-     
-    //}
-    /* example = reduce(example, rules1);
-
-    cout  <<"reduced to "<< *example << endl; */
-
-
     while(example)
     {
         cout << "=> " << *example << endl;
         example = reduce(example, rules);
         cout  <<"reduced to "<< *example << endl;
+        cout << "=> " << *example << endl;
     }
 
     return 0;
