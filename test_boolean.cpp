@@ -89,9 +89,11 @@ int main()
     // false -> false
     // !false
     // true
-    term_ptr<bool> example = tor(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
+    term_ptr<bool> example1 = tor(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 
-    term_ptr<bool> example1 = tor(var("x"), var("x"));
+       term_ptr<bool> example = tnot(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
+
+    //term_ptr<bool> example1 = tor(var("x"), var("x"));
 
     //term_ptr<bool> rule1 = to(var("a"), lit(false));
     vector<rule<bool>> rules1 { rule<bool>(tand(tnot(var("a")), tnot(var("b"))), tnot(tor(var("a"), var("b"))))};
@@ -124,7 +126,7 @@ int main()
         rule<bool>(tor(lit(true), var("a")),   lit(true))
     };
 
-    while(example)
+    while(false && example)
     {
         cout << "=> " << *example << endl;
 
