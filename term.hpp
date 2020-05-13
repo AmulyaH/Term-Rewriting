@@ -41,22 +41,22 @@ using rule = std::pair<term_ptr<T>, term_ptr<T>>;
 template <typename T>
 class term
 {
-
 public:
+    // We need to keep track of path to the current term.
     vector<int> _path;
     string _name;
 
+    typedef T value_type;
+    typedef T *pointer;
+    typedef T &reference;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef term_iterator<T> iterator;
+    typedef term_iterator<const T> const_iterator;
+    typedef forward_iterator_tag iterator_category;
+
     term<T>() {}
 
-    typedef T                       value_type;
-    typedef T                       *pointer;
-    typedef T                       &reference;
-    typedef size_t                  size_type;
-    typedef ptrdiff_t               difference_type;
-    typedef term_iterator<T>        iterator;
-    typedef term_iterator<const T>  const_iterator;
-    typedef forward_iterator_tag    iterator_category;
-    
     virtual term<T> &operator=(term<T> const &var)
     {
         this->_name = var._name;
@@ -69,18 +69,30 @@ public:
 
     virtual void print(ostream &out) const = 0;
 
-    virtual bool isVariable() const = 0;
-   
-    virtual vector<term_ptr<T>> getChildren()
-    {
-        return vector<term_ptr<T>>();
-    }
-    virtual void setChild(uint32_t pos, term_ptr<T> term) = 0;
+    virtual bool isVariable() const {};
+    virtual bool isLiteral() const {};
+    virtual bool isFunction() const {};
     virtual void copy(string name) = 0;
+    virtual void setChild(uint32_t position, term_ptr<T> term) = 0;
+
+    virtual vector<term_ptr<T>> getChildren() = 0;
 
     iterator begin() { return iterator(this, true); }
     iterator end() { return iterator(this, false); }
+
+    iterator cbegin() { return const_iterator(this, true); }
+    iterator cend() { return const_iterator(this, false); }
 };
+
+/////////////////////////////////////////////////////////////////
+//
+// class definitions
+//
+// variable <: term
+// Derived from base class term
+// Can hold only value for the variable
+//
+/////////////////////////////////////////////////////////////////
 
 template <typename T>
 class variable : public term<T>
@@ -89,77 +101,118 @@ private:
     string _value;
 
 public:
-    variable(string s)
+    variable(string value)
     {
-        this->_value = s;
-        this->_name = s;
+        this->_value = value;
+        this->_name = value; // base class variable
     }
 
-    string getValue()
+    /// virtual method to get the childern, since variable wont have any chlildrnes returning empty vector.
+    vector<term_ptr<T>> getChildren() override
     {
-        return _value;
-    }
+        return vector<term_ptr<T>>();
+    };
 
+    /// No implimenation since variable wont have chlildrnes
+    void setChild(uint32_t position, term_ptr<T> term) override{};
+
+    /// to print the variable name, method called from overloaded opeartor method
     void print(ostream &out) const
     {
         out << this->_value;
     }
+
+    /// to check term type
     bool isVariable() const override
     {
         return true;
     }
 
-    vector<term_ptr<T>> getChildren()
+    bool isLiteral() const override
     {
-        return vector<term_ptr<T>>();
+        return false;
     }
-    void setChild(uint32_t pos, term_ptr<T> term)
+
+    bool isFunction() const override
     {
+        return false;
     }
+
+    variable<T> &operator=(variable<T> const &var)
+    {
+        this->_name = var._name;
+    }
+
     void copy(string name)
     {
         this->_name = name;
     }
 };
 
+/////////////////////////////////////////////////////////////////
+//
+// class definitions
+//
+// literal <: term
+// Derived from base class term
+// for literals
+//
+/////////////////////////////////////////////////////////////////
+
 template <typename T>
 class literal : public term<T>
 {
-public:
-    T _value;
 
 public:
+    T _value; // literls type is not known at complie time so templated.
+
+    //default constructor
     literal(T lit)
     {
         this->_value = lit;
-        this->_name = lit; //  std::to_string(lit);// (lit == true) ? "True" : "False";
+        this->_name = lit;
     }
 
-    T getValue()
-    {
-        return _value;
-    }
-
+    /// to print the variable name, method called from overloaded opeartor method
     void print(ostream &out) const
     {
         out << this->_value;
     }
- 
+
+    /// to check term type
     bool isVariable() const override
     {
         return false;
     }
+
+    bool isLiteral() const override
+    {
+        return true;
+    }
+
+    bool isFunction() const override
+    {
+        return false;
+    }
+
     vector<term_ptr<T>> getChildren()
     {
         return vector<term_ptr<T>>();
     }
-    virtual void setChild(uint32_t pos, term_ptr<T> term)
-    {
-    }
-    void copy(string name)
-    {
-    }
+
+    void setChild(uint32_t pos, term_ptr<T> term) override{};
+    void copy(string name){};
 };
+
+/////////////////////////////////////////////////////////////////
+//
+// class definitions
+//
+// function <: term
+// Derived from base class term
+// for function
+//
+/////////////////////////////////////////////////////////////////
 
 template <typename T>
 class function : public term<T>
@@ -179,11 +232,6 @@ public:
         this->_name = n;
     }
 
-    string getValue()
-    {
-        return _value;
-    }
-
     function(const function<T> &var)
     {
         this->_value = var._value;
@@ -192,22 +240,21 @@ public:
         this->_name = var._name;
     }
 
+    // Assignment operator overloading of type term and return type function
     function<T> &operator=(term<T> const &var)
     {
         try
         {
-            {
-                const function<T> *varF = dynamic_cast<const function<T> *>(&var);
-                *this = *varF;
-            } 
+            const function<T> *functionVar = dynamic_cast<const function<T> *>(&var);
+            *this = *functionVar;
         }
         catch (std::bad_cast &e)
         {
         }
-
         return *this;
     }
 
+    // Assignment operator overloading of type function
     function<T> &operator=(function<T> const &var)
     {
         this->_value = var._value;
@@ -217,17 +264,20 @@ public:
         return *this;
     }
 
+    // to get children
     vector<term_ptr<T>> getChildren()
     {
         return children;
     }
 
-    virtual void setChild(uint32_t pos, term_ptr<T> term)
+    // to set the child at a given position.
+    void setChild(uint32_t position, term_ptr<T> term)
     {
-
-        children[pos] = term;
+        children[position] = term;
     }
 
+    // called from operator << overloading friend function
+    // prints the subterm at each level of the term
     void print(ostream &out) const
     {
         out << this->_value << "(";
@@ -244,10 +294,23 @@ public:
         out << ")";
     }
 
+    // to check term type
     bool isVariable() const override
     {
         return false;
     }
+
+    bool isLiteral() const override
+    {
+        return false;
+    }
+
+    bool isFunction() const override
+    {
+        return true;
+    }
+
+    //copy the function name
     void copy(string name)
     {
         this->_value = name;
@@ -257,22 +320,17 @@ public:
 
 /////////////////////////////////////////////////////////////////
 //
-// unify
+// unify : a function to computes a substitution given two terms
+// @parms : t1 - term
+// @parms : t3 - term
+// sigma  : map to hold computed substitution
 //
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-bool unify(const term<T> &t1, const term<T> &t2, Sub<T> &sigma)
-{
-    return false;
-}
-
-template <typename T>
-bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma, int step, bool preMatched)
+bool unify(term_ptr<T> t, const term_ptr<T> rule, Sub<T> &sigma)
 {
     bool found = false;
-    if (t == nullptr && rule == nullptr)
-        return true;
 
     cout << "x :" << *t.get() << " y :" << *rule.get() << endl;
 
@@ -281,96 +339,56 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
 
     if ((t->_name == rule->_name))
     {
-        cout << c1.size() << " " << rC.size() << endl;
-        if (rule->isVariable()) 
+       // cout << c1.size() << " " << rC.size() << endl;
+
+        if (t->isVariable())
+        {
+            if (!sigma.contains(t->_name))
+            {
+                sigma.extend(t->_name, rule);
+            }
+            return unify(sigma(t->_name), rule , sigma);
+        }
+        if (rule->isVariable())
         {
             if (!sigma.contains(rule->_name))
             {
                 sigma.extend(rule->_name, t);
             }
-            return true;
+            return unify(t, sigma(rule->_name) , sigma);
         }
+       
 
         for (uint32_t i = 0; i < c1.size(); i++)
         {
-            path.push_back(i);
-            if (preorder(c1[i], rC[i], path, sigma, i, true))
+            if (unify(c1[i], rC[i], sigma))
             {
-                path.erase(path.end() - 1);
                 found = true;
-            } 
+            }
             else
             {
-                if (!preMatched)
-                {
-                    path.erase(path.end() - 1);
-                }
                 return false;
             }
         }
 
-        if (c1.size() == 0)
-        {
-            return true;
-        }
     }
     else if (rule->isVariable())
     {
-
         if (!sigma.contains(rule->_name))
         {
             sigma.extend(rule->_name, t);
         }
         return true;
     }
-    else
-    {
-        if (!preMatched)
-        {
-            for (uint32_t i = 0; i < c1.size(); i++)
-            {
-                path.push_back(i);
-                if (preorder(c1[i], rule, path, sigma, i, false))
-                {
-                    return true;
-                }
-                else
-                {
-                    path.erase(path.end() - 1);
-                }
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
 
-    return found;
-}
-
-template <typename T>
-bool match(term_ptr<T> t, term_ptr<T> r, vector<int> &path, Sub<T> &sigma)
-{
-    bool found = false;
-    int step = 0;
-
-    found = preorder(t, r, path, sigma, step, false);
-
-    sigma.print();
-    std::cout << " path : ";
-
-    for (auto p : path)
-    {
-        cout << p << " ";
-    }
-    cout << endl;
     return found;
 }
 
 /////////////////////////////////////////////////////////////////
 //
-// reduce
+// reduce : a function to reduce a term using a list of rules
+// @parms : term - which has to be reduced
+// @rules : list of rules for reduction
 //
 /////////////////////////////////////////////////////////////////
 
@@ -379,7 +397,6 @@ term_ptr<T> reduce(term_ptr<T> term, const std::vector<rule<T>> &rules)
 {
     vector<int> path;
     Sub<T> sigma;
-    int step = 0;
 
     {
         bool foundInThisRun = false;
@@ -416,30 +433,12 @@ term_ptr<T> reduce(term_ptr<T> term, const std::vector<rule<T>> &rules)
     return term;
 }
 
-template <typename T>
-void copy(term<T> &t1, term<T> &t2)
-{
-    t1 = t2;
-}
-
-template <typename T>
-void substitue(term<T> &t1, const Sub<T> &sigma)
-{
-    vector<term_ptr<T>> children = t1.getChildren();
-    for (uint32_t i = 0; i < children.size(); i++)
-    {
-        term_ptr<T> c = children[i];
-        if (c->isVariable() && sigma.contains(c->_name))
-        {
-            term_ptr<T> sub = sigma(c->_name);
-            t1.setChild(i, sub);
-        }
-    }
-}
-
 /////////////////////////////////////////////////////////////////
 //
-// rewrite
+// rewrite : a function to rewrite the term to a rule using substitutions.
+// @parms  : t - input term
+// rhs     : right hand side of the rule to which we need to substitute and rewrite
+// sigma   : list of substitutions
 //
 /////////////////////////////////////////////////////////////////
 
@@ -503,7 +502,161 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Su
 
 /////////////////////////////////////////////////////////////////
 //
-// operator<<
+// substitue : a function to substitute the term with substitutions.
+// @parms : t - term
+// @parms : rule - which needs to match with term
+// @parms : sigma - map to store the substitution details
+// @parms : preMatched - flag to check weather the function of rule and term previously matched
+//
+/////////////////////////////////////////////////////////////////
+template <typename T>
+void substitue(term<T> &t, const Sub<T> &sigma)
+{
+    vector<term_ptr<T>> children = t.getChildren();
+    for (uint32_t i = 0; i < children.size(); i++)
+    {
+        term_ptr<T> child = children[i];
+        if (child->isVariable() && sigma.contains(child->_name))
+        {
+            term_ptr<T> substitutionRule = sigma(child->_name);
+            t.setChild(i, substitutionRule);
+        }
+    }
+}
+
+/// to copy one term to another terms
+template <typename T>
+void copy(term<T> &t1, term<T> &t2)
+{
+    t1 = t2;
+}
+
+/////////////////////////////////////////////////////////////////
+//
+// findMatch : a function to find the match between rule and term and gets the substitution
+// @parms : t - term
+// @parms : rule - which needs to match with term
+// @parms : sigma - map to store the substitution details
+// @parms : preMatched - flag to check weather the function of rule and term previously matched
+//
+/////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool findMatch(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma, bool preMatched)
+{
+    bool found = false;
+    if (t == nullptr && rule == nullptr)
+        return true;
+
+    cout << "x :" << *t.get() << " y :" << *rule.get() << endl;
+
+    vector<term_ptr<T>> c1 = t->getChildren();
+    vector<term_ptr<T>> rC = rule->getChildren();
+
+    if ((t->_name == rule->_name))
+    {
+        cout << c1.size() << " " << rC.size() << endl;
+        if (rule->isVariable())
+        {
+            if (!sigma.contains(rule->_name))
+            {
+                sigma.extend(rule->_name, t);
+            }
+            return true;
+        }
+
+        for (uint32_t i = 0; i < c1.size(); i++)
+        {
+            path.push_back(i);
+            if (findMatch(c1[i], rC[i], path, sigma, true))
+            {
+                path.erase(path.end() - 1);
+                found = true;
+            }
+            else
+            {
+                if (!preMatched)
+                {
+                    path.erase(path.end() - 1);
+                }
+                return false;
+            }
+        }
+
+        if (c1.size() == 0)
+        {
+            return true;
+        }
+    }
+    else if (rule->isVariable())
+    {
+        if (!sigma.contains(rule->_name))
+        {
+            sigma.extend(rule->_name, t);
+        }
+        return true;
+    }
+    else
+    {
+        if (!preMatched)
+        {
+            for (uint32_t i = 0; i < c1.size(); i++)
+            {
+                path.push_back(i);
+                if (findMatch(c1[i], rule, path, sigma, false))
+                {
+                    return true;
+                }
+                else
+                {
+                    path.erase(path.end() - 1);
+                }
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return found;
+}
+
+/////////////////////////////////////////////////////////////////
+//
+// match : a function to find the match between rule and term and gets the substitution
+// @parms : t - term
+// @parms : rule - which needs to match with term
+// @parms : sigma - map to store the substitution details
+// @parms : preMatched - flag to check weather the function of rule and term previously matched
+//
+/////////////////////////////////////////////////////////////////
+
+template <typename T>
+bool match(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma)
+{
+    bool found = false;
+
+    found = findMatch(t, rule, path, sigma, false);
+
+    sigma.print();
+    std::cout << " path : ";
+
+    for (auto p : path)
+    {
+        cout << p << " ";
+    }
+    cout << endl;
+
+    return found;
+}
+
+
+/////////////////////////////////////////////////////////////////
+//
+// operator << overloading
+// @parms : out - output stream
+// t      : term
 //
 /////////////////////////////////////////////////////////////////
 

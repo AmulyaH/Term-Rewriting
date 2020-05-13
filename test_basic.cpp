@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <iostream>
 #include <memory>
-
 using namespace std;
 
 //////////////////////////////////////////////////////////////////
@@ -83,29 +82,23 @@ int main()
 {
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
-    term_ptr<bool> ex = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
-    cout << *example << endl;
-
-    for(term<bool>& t : *example)
-    {
-        cout << t << endl;
-    }  
 
     //test printing
     // output: ->(and(not(or(x,x)), not(true)), false)
-    //cout << *example << endl;
+    cout << *example << endl;
 
-    //termTree<bool> term(*ex);
-    //term_iterator<bool> it = (tree.begin());
-    //term_ptr<bool>  t = *it;
 
-    //cout << *(*it) << endl;
-    //cout << *(*(it++)) << endl;
-    //auto end = tree.end();
-    /* for( auto it = term.begin(); it != end;it++)
-    {
-         cout << *(*it) << endl;
-    } */
+    term_ptr<bool> t1 = tand(tnot(tor(var("x"), var("x"))), tnot(lit(true)));
+
+    term_ptr<bool> t2 = tand(var("a"), var("b"));
+
+    Sub<bool> sub;
+
+    bool result = unify(t1, t2, sub);
+
+    sub.print();
+
+
 
     //test iterating
     //this should print every term (Not Necessarily in this order)
@@ -118,51 +111,19 @@ int main()
     // output: not(true)
     // output: true
     // output: false
-
-    
-
-   // cout << *example->begin() << endl;
-    //,cout << *(example->begin()++) << endl;
+    for(term<bool>& t : *example)
+    {
+        cout << t << endl;
+    }
 
     // test doing a simple rewrite
     // this should give
-    
-    // input: ->(and(not(or(x,x)), not(true)), false)
-    // ->(a, false)
-    // !(a)
-
     // output: not(and(not(or(a,a)), not(true)))
-   /*
-    Sub<bool> sigma;
-    //match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
-
-     term_ptr<bool> t1 = tnot(tor(var("b"), tand(lit(true),lit(true))));
-     term_ptr<bool> t2 =  tand(lit(true),lit(true));
-     //sigma.extend("a && a", );
-    //unify(t1,t2, sigma);
-  */
-   
     Sub<bool> match;
     match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
     example = rewrite(example, *contra.second, vector<int>(), match);
     cout << *example << endl;
-    cout <<endl;
 
-    /*  auto it = example->begin();
-     auto end = example->end();
-    
-    for( auto it = example->begin(); it != end;it++)
-    {
-        term<bool>* t =   (*it);
-        cout <<" ** "<< (*it)->_value <<" ==> ";
-          
-         for(auto p :t->_path)
-         {
-                cout << p << " ";
-         }
-         cout <<" | "<< endl;
-         
-    } */
-   
-    
- }
+  
+
+}

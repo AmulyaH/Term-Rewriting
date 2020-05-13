@@ -17,8 +17,9 @@ using term_ptr = std::shared_ptr<term<T>>; */
 template <typename T>
 class term_iterator
 {
-protected:
+private:
     queue<term<T> *> _terms;
+    string _name;
 
 public:
     typedef T value_type;
@@ -41,8 +42,7 @@ public:
         }
     }
 
-    term_iterator<T>(const term_iterator<T>& i) : _terms(i._terms) {}
-    
+    term_iterator<T>(const term_iterator<T>& i) : _terms(i._terms), _name(i._name) {}
 
     void preorder(term<T> *term, vector<int> curPath, int step) 
     { 
