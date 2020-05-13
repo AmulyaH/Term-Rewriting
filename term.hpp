@@ -55,21 +55,23 @@ public:
     typedef term_iterator<T> iterator;
     typedef forward_iterator_tag iterator_category;
 
-   virtual term<T> &operator=( term<T> const& var)
+    virtual term<T> &operator=(term<T> const &var)
     {
         this->_name = var._name;
         this->_path = var._path;
         return *this;
     }
 
-template <class U>
-    term<T>( term<U> const& var ){
+    template <class U>
+    term<T>(term<U> const &var)
+    {
 
         this->_name = var._name;
         this->_path = var._path;
     }
 
-    term (term<T> const& var ){
+    term(term<T> const &var)
+    {
 
         this->_name = var._name;
         this->_path = var._path;
@@ -79,17 +81,17 @@ template <class U>
     friend ostream &operator<<(ostream &out, const term<U> &t);
     virtual void print(ostream &out) const = 0;
 
-    virtual bool isVariable() = 0;
+    virtual bool isVariable() const = 0;
     virtual inline bool operator==(const term<T> &rhs)
     {
         return false;
     }
 
-    virtual vector<term_ptr<T>> getChildren() 
+    virtual vector<term_ptr<T>> getChildren()
     {
         return vector<term_ptr<T>>();
     }
-    virtual void setChild(uint32_t pos, term_ptr<T> term ) = 0;
+    virtual void setChild(uint32_t pos, term_ptr<T> term) = 0;
     virtual void copy(string name) = 0;
 
     term_iterator<T> begin() { return term_iterator<T>(this, true); }
@@ -101,14 +103,14 @@ template <class U>
 template <typename T>
 class variable : public term<T>
 {
-protected:
+public:
     string _value;
 
 public:
     variable(string s)
     {
         this->_value = s;
-         this->_name = s;
+        this->_name = s;
     }
 
     inline bool operator==(const term<T> &rhs) override
@@ -120,7 +122,7 @@ public:
     {
         out << this->_value;
     }
-    bool isVariable() override
+    bool isVariable() const override
     {
         return true;
     }
@@ -129,21 +131,20 @@ public:
     {
         return vector<term_ptr<T>>();
     }
-      void setChild(uint32_t pos , term_ptr<T> term) 
-     {
-         
-     }
-      void copy(string name)
-      {
-       
-          this->_name = name;
-      }
+    void setChild(uint32_t pos, term_ptr<T> term)
+    {
+    }
+    void copy(string name)
+    {
+
+        this->_name = name;
+    }
 };
 
 template <typename T>
 class literal : public term<T>
 {
-protected:
+public:
     T _value;
 
 public:
@@ -165,7 +166,7 @@ public:
        
                 *(this->_two) == *(rhs._two) && *(rhs._two) == *(this->_two)); */
     }
-    bool isVariable() override
+    bool isVariable() const override
     {
         return false;
     }
@@ -173,14 +174,12 @@ public:
     {
         return vector<term_ptr<T>>();
     }
-     virtual void setChild(uint32_t pos , term_ptr<T> term) 
-     {
-
-     }
-        void copy(string name) 
-       {
-
-       }
+    virtual void setChild(uint32_t pos, term_ptr<T> term)
+    {
+    }
+    void copy(string name)
+    {
+    }
 };
 
 template <typename T>
@@ -202,7 +201,7 @@ public:
         this->_name = n;
     }
 
-    function(const function<T>&var)
+    function(const function<T> &var)
     {
         this->_value = var._value;
         this->_arity = var._arity;
@@ -210,38 +209,32 @@ public:
         this->_name = var._name;
     }
 
-    function<T> &operator=(term<T> const& var)
+    function<T> &operator=(term<T> const &var)
     {
         try
         {
-            const function<T>* varF = dynamic_cast<const function<T>*> (&var);
-            *this = *varF;
-
+            // if(!var.isVariable())
+            {
+                const function<T> *varF = dynamic_cast<const function<T> *>(&var);
+                *this = *varF;
+            } /*else
+            {
+                const variable<T> *varV = dynamic_cast<const variable<T> *>(&var);
+                *this = *varV;
+            }  */
         }
-        catch(const std::exception& e)
+        catch (std::bad_cast &e)
         {
-            try
-            {
-                /*  const variable<T>* varV = dynamic_cast<const variable<T>*> (&var);
-                    *this = *varV; */
-            }
-            catch(const std::exception& e)
-            {
-                std::cerr << e.what() << '\n';
-            }
-            
         }
-        
-       
+
         return *this;
     }
-    
 
     //template <class U>
-    function<T> &operator=(function<T> const& var)
+    function<T> &operator=(function<T> const &var)
     {
         //term<U>::operator=(var);
-                 cout <<" fffff assing operator \n";
+        cout << " fffff assing operator \n";
 
         this->_value = var._value;
         this->_arity = var._arity;
@@ -250,30 +243,29 @@ public:
         return *this;
     }
 
-   /*  function<T> &operator=(variable<T> const& var)
+    /*
+     function<T> &operator=(variable<T> const& var)
     {
         //term<U>::operator=(var);
                  cout <<" fffff assing operator \n";
 
         this->_value = var._value;
         this->_arity = 0;
-        this->children = vector<term<T>{};
+        this->children =  vector<term_ptr<T>>();
         this->_name = "";
         return *this;
-    } */
-
+    } 
+*/
     vector<term_ptr<T>> getChildren()
     {
         return children;
     }
 
-    
-     virtual void setChild(uint32_t pos, term_ptr<T> term ) 
-     {
-        
-         children[pos] = term ;
-        
-     }
+    virtual void setChild(uint32_t pos, term_ptr<T> term)
+    {
+
+        children[pos] = term;
+    }
 
     void print(ostream &out) const
     {
@@ -294,15 +286,15 @@ public:
     {
     }
 
-    bool isVariable() override
+    bool isVariable() const override
     {
         return false;
     }
-       void copy(string name)
-      {
-          this->_value = name;
-          this->_name = name;
-      }
+    void copy(string name)
+    {
+        this->_value = name;
+        this->_name = name;
+    }
 };
 
 /////////////////////////////////////////////////////////////////
@@ -348,78 +340,74 @@ bool preorder(term_ptr<T> t, term_ptr<T> rule, vector<int> &path, Sub<T> &sigma,
     vector<term_ptr<T>> c1 = t->getChildren();
     vector<term_ptr<T>> rC = rule->getChildren();
 
-    if( c1.size() == 0)
+    if (c1.size() == 0)
     {
-       //return false;
+        //return false;
     }
-    if((t->_name == rule->_name))
+    if ((t->_name == rule->_name))
     {
-        cout <<c1.size() <<" "<< rC.size() <<endl;
-         if(rule->isVariable())   // c1.size() != rC.size() && (this was inside if rule)
-         {
-             sigma.extend(rule->_name, t);
-             return true;
-         }   
-        
-        for(uint32_t i = 0; i < c1.size() ; i++)
+        cout << c1.size() << " " << rC.size() << endl;
+        if (rule->isVariable()) // c1.size() != rC.size() && (this was inside if rule)
         {
-              //if( i == 0 ){path.push_back(i);}
+            sigma.extend(rule->_name, t);
+            return true;
+        }
+
+        for (uint32_t i = 0; i < c1.size(); i++)
+        {
+            //if( i == 0 ){path.push_back(i);}
             path.push_back(i);
-            if(preorder(c1[i],  rC[i], path, sigma, i, true))
+            if (preorder(c1[i], rC[i], path, sigma, i, true))
             {
-               path.erase(path.end() - 1); 
-                found =  true;
-            }/*else if(preorder(c1[i],  rule, path, sigma, i,true))
+                path.erase(path.end() - 1);
+                found = true;
+            } /*else if(preorder(c1[i],  rule, path, sigma, i,true))
             {
                return true; 
             }*/
             else
             {
-                if(!preMatched)
+                if (!preMatched)
                 {
-                    path.erase(path.end() - 1); 
+                    path.erase(path.end() - 1);
                 }
                 return false;
             }
-            
         }
 
-        if(c1.size()  == 0)
+        if (c1.size() == 0)
         {
             return true;
         }
-       
-    }else if (rule->isVariable())
+    }
+    else if (rule->isVariable())
     {
         sigma.extend(rule->_name, t);
         return true;
     }
     else
     {
-    if(!preMatched)
-    {
-        for(uint32_t i = 0; i < c1.size() ; i++)
+        if (!preMatched)
         {
-              path.push_back(i);
-            if(preorder(c1[i],  rule, path, sigma, i,false))
+            for (uint32_t i = 0; i < c1.size(); i++)
             {
-                //path.erase(path.end() - 1); 
-                return true;  
-            }else
-            {
-                 path.erase(path.end() - 1);
-               //return false;
+                path.push_back(i);
+                if (preorder(c1[i], rule, path, sigma, i, false))
+                {
+                    //path.erase(path.end() - 1);
+                    return true;
+                }
+                else
+                {
+                    path.erase(path.end() - 1);
+                    //return false;
+                }
             }
-            
         }
-    }
-    else
-    {
-        return false;
-        
-    }
-    
-       
+        else
+        {
+            return false;
+        }
     }
 
     return found;
@@ -432,14 +420,14 @@ bool match(term_ptr<T> t, term_ptr<T> r, vector<int> &path, Sub<T> &sigma)
     //auto end = t->end();
     int step = 0;
 
-    found = preorder(t, r, path, sigma, step,false);
+    found = preorder(t, r, path, sigma, step, false);
 
     sigma.print();
-    std::cout <<" path : ";
-    
-    for(auto p : path)
+    std::cout << " path : ";
+
+    for (auto p : path)
     {
-        cout << p <<" ";
+        cout << p << " ";
     }
     cout << endl;
     return found;
@@ -465,7 +453,7 @@ term_ptr<T> reduce(term_ptr<T> term, const std::vector<rule<T>> &rules)
         for (uint32_t r = 0; r < rules.size(); r++)
         {
             term_ptr<T> f = (rules[r].first);
-            cout <<" trying to reduce => " << *term <<" with rule => " << *f << endl; 
+            cout << " trying to reduce => " << *term << " with rule => " << *f << endl;
             //cout <<*f <<" => " << *(rules[r].second)<<"\n";
             Sub<T> sigma;
             bool found = match(term, rules[r].first, path, sigma);
@@ -492,7 +480,6 @@ term_ptr<T> reduce(term_ptr<T> term, const std::vector<rule<T>> &rules)
         }
         if (!foundInThisRun)
         {
-         
         }
     }
 
@@ -501,9 +488,9 @@ term_ptr<T> reduce(term_ptr<T> term, const std::vector<rule<T>> &rules)
 }
 
 template <typename T>
-void copy(term<T>& t1, term<T>& t2)
+void copy(term<T> &t1, term<T> &t2)
 {
-    t1 = t2;
+    t1 = t2; ///t1.=(t2);
     /*
     function<T>* t1f = dynamic_cast<function<T>*> (&t1);
     function<T>* t2f = dynamic_cast<function<T>*> (&t2);
@@ -511,31 +498,18 @@ void copy(term<T>& t1, term<T>& t2)
 }
 
 template <typename T>
-void substitue(term<T>& t1,const Sub<T> &sigma)
+void substitue(term<T> &t1, const Sub<T> &sigma)
 {
- vector<term_ptr<T>>  children = t1.getChildren();
- for(uint32_t i = 0 ; i < children.size() ; i++)
- {
-    term_ptr<T> c = children[i];
-     if(c->isVariable() && sigma.contains(c->_name))
-     {
-         term_ptr<T> sub = sigma(c->_name);
-         t1.setChild(i, sub);
-         /*
-         if(sub->isVariable())
-         {
-             t1._name = sub->_name;
-         }
-         else
-         {
-                   
-                      // copy(*c, *sub);
-
-         }*/
-         
-     }
- }
-
+    vector<term_ptr<T>> children = t1.getChildren();
+    for (uint32_t i = 0; i < children.size(); i++)
+    {
+        term_ptr<T> c = children[i];
+        if (c->isVariable() && sigma.contains(c->_name))
+        {
+            term_ptr<T> sub = sigma(c->_name);
+            t1.setChild(i, sub);
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -545,7 +519,7 @@ void substitue(term<T>& t1,const Sub<T> &sigma)
 /////////////////////////////////////////////////////////////////
 
 template <typename T>
-term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T> &sigma)
+term_ptr<T> rewrite2(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Sub<T> &sigma)
 {
     bool contains = false;
     term_ptr<T> ruleSubstitution;
@@ -553,100 +527,92 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
     vector<term_ptr<T>> c1 = t->getChildren();
 
     vector<term_ptr<T>> rh = rhs.getChildren();
-   // bool contains = false;
-   // term_ptr<T> ruleSubstitution;
 
-    cout <<" t is :" << *t << endl;
+    cout << " t is :" << *t << endl;
 
     term_ptr<T> cur = t;
 
-    cout <<" cur is :" << *cur << endl;
+    cout << " cur is :" << *cur << endl;
 
-    for(int i = 0 ; i < path.size(); i ++)
+    for (int i = 0; i < path.size(); i++)
     {
         c1 = cur->getChildren();
         cur = c1[path[i]];
     }
-    /*
-    function<T>* cf = dynamic_cast<function<T>*> (cur.get());
-    function<T>* rhsf = dynamic_cast<function<T>*> (&rhs);
-    *cf = *rhsf;*/
 
-   copy(*cur.get(), rhs);
+    copy(*cur.get(), rhs);
 
-    cout <<" cur is :" << *cur << endl;
+    cout << " cur is :" << *cur << endl;
 
-    cout <<" t is :" << *t << endl;
+    cout << " t is :" << *t << endl;
 
-    string s ;
-    term_ptr<T> p1 = t;
-
-    for(term<bool>& it : *cur)
+    for (term<bool> &it : *cur)
     {
+        substitue(it, sigma);
+        cout << *cur << endl;
 
-       // if(!it.isVariable())
-        {
-          substitue(it, sigma);
-        cout << *cur<<endl;
-        //cout << it << endl;
-        }
-        
-        cout <<endl;
-        /*
-        if(it.isVariable())
-        {
-            contains = sigma.contains(it._name);
-            if(contains)
-            {
-                ruleSubstitution = sigma(it._name);
-
-                cout << "substitution is " << *ruleSubstitution << endl;
-
-               // it = sigma(it._name);
-
-                //it = ruleSubstitution;
-                if(it.isVariable())
-                {
-                        //it.v
-                }
-                else
-                {
-                                 copy(it, *(ruleSubstitution.get()));
-
-                }
-                
-                
-                cout <<" root is " << it << endl;
-
-            }
-            
-        }*/
+        cout << endl;
     }
 
-   /*  auto it = cur.begin();
-    auto end = cur.end();
+    cout << " adadasdada is " << *t << endl;
+    return t;
+}
 
-    //term<T> *  root= *it;
-    //*t = rhs;
-    for (; it != end; it++)
+template <typename T>
+term_ptr<T> rewrite(term_ptr<T> t, term<T> &rhs, std::vector<int> path, const Sub<T> &sigma)
+{
+    term_ptr<T> ruleSubstitution;
+
+    vector<term_ptr<T>> c1 = t->getChildren();
+
+    cout << " t is :" << *t << endl;
+
+    term_ptr<T> cur = t;
+
+    cout << " cur is :" << *cur << endl;
+
+    for (int i = 0; i < path.size(); i++)
     {
-        if(it->isVariable())
+        c1 = cur->getChildren();
+        cur = c1[path[i]];
+    }
+    if (!rhs.isVariable())
+    {
+        copy(*cur.get(), rhs);
+
+        for (term<T> &it : *cur)
         {
-            contains = sigma.contains(it->_name);
-            if(contains)
+            substitue(it, sigma);
+            //cout << *cur << endl;
+
+            //cout << endl;
+        }
+    }
+    else
+    {
+        if (sigma.contains(rhs._name))
+        {
+            term_ptr<T> sub = sigma(rhs._name);
+            vector<term_ptr<T>> ch = sub->getChildren();
+            if (ch.size() > 0)
             {
-                ruleSubstitution = sigma(it->_name);
+                *cur = *sub;
+            }
+            else if (sub->isVariable())
+            {
+                return make_shared<variable<T>>(variable<T>(sub->_name));
+            }
+            else
+            {
+                const literal<T> *varL = dynamic_cast<const literal<T> *>(sub.get());
 
-                cout << "substitution is " << *ruleSubstitution << endl;
-
-                it = ruleSubstitution;
-                
-                cout <<" root is " << *cur << endl;
+                return make_shared<literal<T>>(literal<T>(varL->_value));
+                cout << *cur << endl;
             }
         }
-        
-    } */
-     cout <<" adadasdada is " << *t << endl;
+    }
+
+    cout << " adadasdada is " << *t << endl;
     return t;
 }
 
