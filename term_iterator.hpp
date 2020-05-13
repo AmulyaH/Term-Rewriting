@@ -11,15 +11,12 @@ using namespace std;
 template <typename T>
 class term;
 
-/* template <typename T>
-using term_ptr = std::shared_ptr<term<T>>; */
-
 template <typename T>
 class term_iterator
 {
 private:
+    /// contents of current iterator
     queue<term<T> *> _terms;
-    string _name;
 
 public:
     typedef T value_type;
@@ -32,62 +29,74 @@ public:
 
     term_iterator<T>() = delete;
 
-    term_iterator<T>(term<T> *n, bool begin)
+    /**
+     * Constructor 
+     *  @param inputTerm   term for which iterator is constructed
+     *  @param begin       if true, begin constructor is constructed else end constructor is constrcuted.
+     */
+    term_iterator<T>(term<T> *inputTerm, bool begin)
     {
         uint32_t step = 0;
         if (begin)
         {
-            vector<int> curPath;
-            preorder(n,  curPath, 0) ;
+            levelOrder(inputTerm);
         }
     }
 
-    term_iterator<T>(const term_iterator<T>& i) : _terms(i._terms), _name(i._name) {}
+    // Copy Constructor
+    term_iterator<T>(const term_iterator<T> &input) : _terms(input._terms) {}
 
-    void preorder(term<T> *term, vector<int> curPath, int step) 
-    { 
-        if (term == nullptr) 
-            return; 
-    
-        if(step !=0) {
-            curPath.push_back(step);
-        }
-        term->_path = curPath;
+    /**
+     * Level order traversal to populate subterms in the term
+     * @param term  term on which traversal is operated
+     * 
+     */
+    void levelOrder(term<T> *term)
+    {
+        if (term == nullptr)
+            return;
+
         _terms.push(term);
 
         std::vector<term_ptr<T>> children = term->getChildren();
 
-        for(uint32_t ch = 0 ; ch < children.size() ; ch++)
-        {   
-            term_ptr<T> child=  children[ch];
-             preorder(child.get(), curPath, ch);  
+        for (uint32_t ch = 0; ch < children.size(); ch++)
+        {
+            term_ptr<T> child = children[ch];
+            levelOrder(child.get());
         }
-
-    }  
-
-    term_iterator<T>& operator++();
-
-    term<T>& operator*()
-    {
-        term<T> * t = _terms.front();
-        return *t;
     }
 
-    term<T> * operator->() const
+    term_iterator<T> &operator++()
     {
-        return _terms.front();
+        if (!_terms.empty())
+        {
+            _terms.pop();
+        }
+        return *this;
     }
 
     term_iterator<T> operator++(int)
     {
-        term_iterator<T> tmp(*this);
+        term_iterator<T> next(*this);
         ++*this;
-        return tmp;
+        return next;
     }
 
-    term_iterator<T> &operator+=(unsigned int n)
+    term<T> &operator*()
     {
-        for (int i = 0; i < n; i++)
+        term<T> *firstTerm = _terms.front();
+        return *firstTerm;
+    }
+
+    term<T> *operator->() const
+    {
+        return _terms.front();
+    }
+
+    term_iterator<T> &operator+=(unsigned int size)
+    {
+        for (int i = 0; i < size; i++)
             ++*this;
         return *this;
     }
@@ -102,15 +111,5 @@ public:
         return _terms != rhs._terms;
     }
 };
-
-template<typename T>
-term_iterator<T>& term_iterator<T>::operator++()
-{
-    if(!_terms.empty())
-    {
-        _terms.pop();
-    }
-    return *this;
-}
 
 #endif // TERM_ITERATOR_HPP

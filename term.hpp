@@ -42,44 +42,51 @@ template <typename T>
 class term
 {
 public:
-    // We need to keep track of path to the current term.
-    vector<int> _path;
     string _name;
 
-    typedef T value_type;
-    typedef T *pointer;
-    typedef T &reference;
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    typedef term_iterator<T> iterator;
-    typedef term_iterator<const T> const_iterator;
-    typedef forward_iterator_tag iterator_category;
+    typedef T                           value_type;
+    typedef T                           *pointer;
+    typedef T                           &reference;
+    typedef size_t                      size_type;
+    typedef ptrdiff_t                   difference_type;
+    typedef term_iterator<T>            iterator;
+    typedef term_iterator<const T>      const_iterator;
+    typedef forward_iterator_tag        iterator_category;
 
     term<T>() {}
 
     virtual term<T> &operator=(term<T> const &var)
     {
         this->_name = var._name;
-        this->_path = var._path;
         return *this;
     }
 
     template <typename U>
-    friend ostream &operator<<(ostream &out, const term<U> &t);
+    friend ostream &operator<<(ostream &out, const term<U> &outputTerm);
 
+    // print the input from operator << 
     virtual void print(ostream &out) const = 0;
 
+    // check is variable
     virtual bool isVariable() const {};
-    virtual bool isLiteral() const {};
-    virtual bool isFunction() const {};
-    virtual void copy(string name) = 0;
+    
+    // copy the term names
+    virtual void copyName(string name) = 0;
+
+    // sets children's/subterms
     virtual void setChild(uint32_t position, term_ptr<T> term) = 0;
 
-    virtual vector<term_ptr<T>> getChildren() = 0;
+    // gets immediate children's/subterms
+    virtual vector<term_ptr<T>> getChildren() 
+    {
+                return vector<term_ptr<T>>();
+    }
 
+    // iterator to set the locator/pointer at the begining or end of term
     iterator begin() { return iterator(this, true); }
     iterator end() { return iterator(this, false); }
 
+    // constent term iterator
     iterator cbegin() { return const_iterator(this, true); }
     iterator cend() { return const_iterator(this, false); }
 };
@@ -107,45 +114,40 @@ public:
         this->_name = value; // base class variable
     }
 
-    /// virtual method to get the childern, since variable wont have any chlildrnes returning empty vector.
+    //to gets children's of variable, since variable wont have any children's or subterms returning empty vector
     vector<term_ptr<T>> getChildren() override
     {
         return vector<term_ptr<T>>();
     };
 
-    /// No implimenation since variable wont have chlildrnes
+    // No implimenation since variable wont have chlildrnes
     void setChild(uint32_t position, term_ptr<T> term) override{};
 
-    /// to print the variable name, method called from overloaded opeartor method
+    // print the input from operator << 
     void print(ostream &out) const
     {
         out << this->_value;
     }
 
-    /// to check term type
+    /// check for variable 
     bool isVariable() const override
     {
         return true;
     }
 
-    bool isLiteral() const override
-    {
-        return false;
-    }
-
-    bool isFunction() const override
-    {
-        return false;
-    }
-
+    //copy constructor for variable
     variable<T> &operator=(variable<T> const &var)
     {
         this->_name = var._name;
     }
 
-    void copy(string name)
+    /**
+     * copy the variable
+     * @param var variable to be copied
+     */
+    void copyName(string var) override
     {
-        this->_name = name;
+        this->_name = var;
     }
 };
 
@@ -173,35 +175,27 @@ public:
         this->_name = lit;
     }
 
-    /// to print the variable name, method called from overloaded opeartor method
+    // print the input from operator << 
     void print(ostream &out) const
     {
         out << this->_value;
     }
 
-    /// to check term type
+    //check is variable
     bool isVariable() const override
     {
         return false;
     }
 
-    bool isLiteral() const override
-    {
-        return true;
-    }
-
-    bool isFunction() const override
-    {
-        return false;
-    }
-
+    //returns empty vector = no children's
     vector<term_ptr<T>> getChildren()
     {
         return vector<term_ptr<T>>();
     }
 
+    // no implimentation = no childrems
     void setChild(uint32_t pos, term_ptr<T> term) override{};
-    void copy(string name){};
+    void copyName(string name) override{};
 };
 
 /////////////////////////////////////////////////////////////////
@@ -219,72 +213,81 @@ class function : public term<T>
 {
 
 private:
-    string _value;
-    size_t _arity;
-    vector<term_ptr<T>> children;
+    string _value;  // function name
+    size_t _arity;  // size of the function/ no of subterms or children's
+    vector<term_ptr<T>> _children; // a function can have more than one children's / subterms
 
 public:
-    function(string n, size_t k, vector<term_ptr<T>> t)
+
+    function(string functionName, size_t functionSize, vector<term_ptr<T>> functionChildren)
     {
-        this->_value = n;
-        this->_arity = k;
-        this->children = t;
-        this->_name = n;
+        this->_value = functionName;
+        this->_arity = functionSize;
+        this->_children = functionChildren;
+        this->_name = functionName;  // base class variable
     }
 
-    function(const function<T> &var)
+    function(const function<T>& functionTerm)
     {
-        this->_value = var._value;
-        this->_arity = var._arity;
-        this->children = var.children;
-        this->_name = var._name;
+        this->_value = functionTerm._value;
+        this->_arity = functionTerm._arity;
+        this->_children = functionTerm._children;
+        this->_name = functionTerm._name;  // base class variable
     }
 
-    // Assignment operator overloading of type term and return type function
-    function<T> &operator=(term<T> const &var)
+    // Assignment operator overloading 
+    function<T> &operator=(term<T> const &subTerm)
     {
         try
         {
-            const function<T> *functionVar = dynamic_cast<const function<T> *>(&var);
+            // dynamic casting to call appropriate assignment operator 
+            const function<T> *functionVar = dynamic_cast<const function<T> *>(&subTerm);
             *this = *functionVar;
         }
         catch (std::bad_cast &e)
         {
+            std::cout << e.what() << '\n';
         }
         return *this;
     }
 
-    // Assignment operator overloading of type function
-    function<T> &operator=(function<T> const &var)
+    // Assignment operator overloading for function
+    function<T> &operator=(function<T> const &subTerm)
     {
-        this->_value = var._value;
-        this->_arity = var._arity;
-        this->children = var.children;
-        this->_name = var._name;
+        this->_value = subTerm._value;
+        this->_arity = subTerm._arity;
+        this->_children = subTerm._children;
+        this->_name = subTerm._name;
         return *this;
     }
 
     // to get children
     vector<term_ptr<T>> getChildren()
     {
-        return children;
+        return _children;
     }
-
-    // to set the child at a given position.
-    void setChild(uint32_t position, term_ptr<T> term)
+    
+    /**
+     * assign child at a given position.
+     * @param position location to set the child
+     * @param childTerm input subterm to be assigned
+     */ 
+    void setChild(uint32_t position, term_ptr<T> childTerm)
     {
-        children[position] = term;
+        _children[position] = childTerm;
     }
 
-    // called from operator << overloading friend function
-    // prints the subterm at each level of the term
+    /**
+     * prints the subterms from each level of the term
+     * @param out output stream which has data
+     */ 
     void print(ostream &out) const
     {
         out << this->_value << "(";
 
         for (int i = 0; i < _arity; i++)
         {
-            children[i]->print(out);
+            _children[i]->print(out);
             if (i % 2 == 0 && i != _arity - 1)
             {
                 out << " , ";
@@ -294,24 +297,14 @@ public:
         out << ")";
     }
 
-    // to check term type
+    // check for is variable
     bool isVariable() const override
     {
         return false;
     }
 
-    bool isLiteral() const override
-    {
-        return false;
-    }
-
-    bool isFunction() const override
-    {
-        return true;
-    }
-
-    //copy the function name
-    void copy(string name)
+    //to copy function name
+    void copyName(string name) override
     {
         this->_value = name;
         this->_name = name;
@@ -320,48 +313,54 @@ public:
 
 /////////////////////////////////////////////////////////////////
 //
-// unify : a function to computes a substitution given two terms
+// 
 // @parms : t1 - term
 // @parms : t3 - term
 // sigma  : map to hold computed substitution
 //
 /////////////////////////////////////////////////////////////////
 
+/**
+ * unify : a function to computes a substitution given two terms and find if one term unifies with other.
+ * unify returns true, when sigma(firstTerm) and sigma(secondTerm) is same. unify is two sided 
+ * 
+ * @param firstTerm one term
+ * @param secondTerm another term
+ * @param sigma map to store the variable and it's substituations 
+ * 
+ */ 
 template <typename T>
-bool unify(term_ptr<T> t, const term_ptr<T> rule, Sub<T> &sigma)
+bool unify(term_ptr<T> firstTerm, const term_ptr<T> secondTerm, Sub<T> &sigma)
 {
     bool found = false;
 
-    cout << "x :" << *t.get() << " y :" << *rule.get() << endl;
+    vector<term_ptr<T>> firstTChildren = firstTerm->getChildren();
+    vector<term_ptr<T>> secondTChildren = secondTerm->getChildren();
 
-    vector<term_ptr<T>> c1 = t->getChildren();
-    vector<term_ptr<T>> rC = rule->getChildren();
-
-    if ((t->_name == rule->_name))
+    if ((firstTerm->_name == secondTerm->_name))
     {
        // cout << c1.size() << " " << rC.size() << endl;
 
-        if (t->isVariable())
+        if (firstTerm->isVariable())
         {
-            if (!sigma.contains(t->_name))
+            if (!sigma.contains(firstTerm->_name))
             {
-                sigma.extend(t->_name, rule);
+                sigma.extend(firstTerm->_name, secondTerm);
             }
-            return unify(sigma(t->_name), rule , sigma);
+            return unify(sigma(firstTerm->_name), secondTerm , sigma);
         }
-        if (rule->isVariable())
+        if (secondTerm->isVariable())
         {
-            if (!sigma.contains(rule->_name))
+            if (!sigma.contains(secondTerm->_name))
             {
-                sigma.extend(rule->_name, t);
+                sigma.extend(secondTerm->_name, firstTerm);
             }
-            return unify(t, sigma(rule->_name) , sigma);
+            return unify(firstTerm, sigma(secondTerm->_name) , sigma);
         }
        
-
-        for (uint32_t i = 0; i < c1.size(); i++)
+        for (uint32_t i = 0; i < firstTChildren.size(); i++)
         {
-            if (unify(c1[i], rC[i], sigma))
+            if (unify(firstTChildren[i], secondTChildren[i], sigma))
             {
                 found = true;
             }
@@ -372,11 +371,11 @@ bool unify(term_ptr<T> t, const term_ptr<T> rule, Sub<T> &sigma)
         }
 
     }
-    else if (rule->isVariable())
+    else if (secondTerm->isVariable())
     {
-        if (!sigma.contains(rule->_name))
+        if (!sigma.contains(secondTerm->_name))
         {
-            sigma.extend(rule->_name, t);
+            sigma.extend(secondTerm->_name, firstTerm);
         }
         return true;
     }
